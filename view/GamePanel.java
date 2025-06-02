@@ -92,9 +92,6 @@ public class GamePanel extends JPanel {
 
 
 
-        // If a unit is selected and this is a valid move location
-        System.out.println(gameController.getSelectedUnitType());
-        System.out.println(gameController.getCurrentPlayerName());
 //        if (selectedUnit != null) {
 //            if (canMoveUnitTo(selectedRow, selectedCol, row, col)) {
 //                moveUnit(selectedRow, selectedCol, row, col);
@@ -105,7 +102,8 @@ public class GamePanel extends JPanel {
 //            }
 //        }
         selectedUnit = createUnit(gameController.getSelectedUnitType(), gameController.getCurrentPlayer());
-        System.out.println(selectedUnit.toString());
+        selectedStructure = createStructure(gameController.getSelectedStructureType(), gameController.getCurrentPlayer());
+
         if (block.hasUnit() && block.getUnit().getOwner().getName().equals(currentPlayer)) {
             selectedUnit = block.getUnit();
             selectedRow = row;
@@ -183,9 +181,7 @@ public class GamePanel extends JPanel {
     }
 
     private void placeStructure(int row, int col, String structureType) {
-        if (structureType.equals("Townhall")) return;
-
-        String currentPlayer = gameController.getCurrentPlayerName();
+        Player currentPlayer = gameController.getCurrentPlayer();
         Structures structure = createStructure(structureType, currentPlayer);
 
         if (structure != null && gameController.getCurrentPlayer().getKingdom().canBuildStructure(structure)) {
@@ -224,12 +220,24 @@ public class GamePanel extends JPanel {
         }
     }
 
-    private Structures createStructure(String structureType, String owner) {
+    private Structures createStructure(String structureType, Player owner) {
         switch (structureType) {
-            case "Barrack": return new Barrack();
-            case "Farm": return new Farm();
-            case "Market": return new Market();
-            case "Tower": return new Tower();
+            case "Barrack":
+                Barrack newBarrack = new Barrack();
+                newBarrack.setOwner(owner);
+                return new Barrack();
+            case "Farm":
+                Farm newFarm = new Farm();
+                newFarm.setOwner(owner);
+                return new Farm();
+            case "Market":
+                Market newMarket = new Market();
+                newMarket.setOwner(owner);
+                return new Market();
+            case "Tower":
+                Tower newTower = new Tower();
+                newTower.setOwner(owner);
+                return new Tower();
             default: return null;
         }
     }

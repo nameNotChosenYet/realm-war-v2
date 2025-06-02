@@ -140,7 +140,6 @@ public class HUDPanel extends JPanel {
 
             unitButton.addActionListener(e -> {
                 gameController.selectUnitType(unit);
-
                 addLogMessage("Selected unit: " + unit);
             });
 
@@ -165,9 +164,10 @@ public class HUDPanel extends JPanel {
             panel.add(structureButton);
 
             structureButton.addActionListener(e -> {
-                gameController.selectUnitType(structure);
-                addLogMessage("Selected unit: " + structure);
+                gameController.selectStructureType(structure);
+                addLogMessage("Selected structure: " + structure);
             });
+
 
 
         }
