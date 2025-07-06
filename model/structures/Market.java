@@ -2,7 +2,7 @@ package model.structures;
 
 import model.Kingdom;
 
-public class Market extends Structures{
+public class Market extends Structure {
     private int goldPerTurn;
 
     public Market() {

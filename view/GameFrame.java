@@ -29,6 +29,7 @@ public class GameFrame extends JFrame {
     private void createComponents() {
         gamePanel = new GamePanel(gameController);
         hudPanel = new HUDPanel(gameController);
+        gameController.setHudPanel(hudPanel);
         bottomPanel = createBottomPanel();
     }
 
@@ -58,17 +59,17 @@ public class GameFrame extends JFrame {
 
         endTurnButton.addActionListener(e -> {
             if (gameController != null) {
-                // gameController.endTurn();
-                hudPanel.addLogMessage("Turn ended");
+                gameController.endTurn();
+                gamePanel.clearSelectionHighlights();
+                repaint();
                 updateDisplay();
             }
         });
 
         newGameButton.addActionListener(e -> {
             if (gameController != null) {
-                // gameController.newGame();
-                hudPanel.addLogMessage("New game started");
-                updateDisplay();
+                new GameFrame();
+                dispose();
             }
         });
 
@@ -100,4 +101,5 @@ public class GameFrame extends JFrame {
         gamePanel.repaint();
         hudPanel.updateStats();
     }
+
 }

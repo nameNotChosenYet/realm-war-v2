@@ -1,16 +1,16 @@
 package model.units;
 
 import model.Kingdom;
-import model.structures.Structures;
+import model.structures.Structure;
 
-public class Knight extends Units {
+public class Knight extends Unit {
 
     public Knight(){
-        super(40,4, 5, 5, 5, 6, 1);
+        super(40,4, 5, 5, 5, 6, 1, true);
     }
 
     @Override
-    public void attack(Units target){
+    public void attack(Unit target){
         int hP = target.getHitPoint() - this.getAttackPower();
         if( hP < 0) {
             hP = 0;
@@ -20,12 +20,22 @@ public class Knight extends Units {
     }
 
     @Override
-    public void structAttack(Structures target){
+    public void structAttack(Structure target){
         int newDurability = target.getDurability() - this.getAttackPower();
         if( newDurability < 0 ){
             newDurability = 0;
             new Kingdom().deleteStructure(target);
         }
         target.setDurability(newDurability);
+    }
+
+    @Override
+    public boolean getCanMove() {
+        return canMove;
+    }
+
+    @Override
+    public void setCanMove(boolean move) {
+        canMove = move;
     }
 }

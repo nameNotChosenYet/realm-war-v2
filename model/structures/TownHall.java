@@ -1,6 +1,6 @@
 package model.structures;
 
-public class TownHall extends Structures {
+public class TownHall extends Structure {
     private int goldPerTurn;
     private int foodPerTurn;
     private int unitSpace;

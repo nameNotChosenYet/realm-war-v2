@@ -4,13 +4,14 @@ import model.blocks.Block;
 import model.blocks.EmptyBlock;
 import model.blocks.ForestBlock;
 import model.blocks.VoidBlock;
-import model.structures.Structures;
-import model.units.Units;
+import model.structures.Structure;
+import model.units.Unit;
 
 import javax.swing.*;
 import java.awt.*;
 
 public class BlockView extends JButton {
+
     private Block block;
     private boolean highlighted = false;
     private boolean selected = false;
@@ -29,52 +30,21 @@ public class BlockView extends JButton {
         setBorderPainted(true);
 
         updateDisplay();
-
-//        addActionListener(e -> {
-//            JOptionPane.showMessageDialog(this,
-//                    "Type: " + block.getType() +
-//                            "\nOwner: " + (block.isOwned() ? block.getOwner() : "None") +
-//                            "\nGold: " + block.getGoldGeneration() +
-//                            "\nFood: " + block.getFoodGeneration()
-//            );
-//
-//            if (block instanceof ForestBlock forest) {
-//                forest.cutForest();
-//            }
-//
-//            updateDisplay();
-//        });
-    }
-
-    public BlockView(Block block, boolean useSimpleView) {
-        this.block = block;
-        this.highlighted = false;
-        this.selected = false;
-
     }
 
     public void updateDisplay() {
-        if (block.hasUnit()) {
+        if (block.hasUnit())
             displayUnit(block.getUnit());
-        } else if (block.hasStructure()) {
+        else if (block.hasStructure())
             displayStructure(block.getStructure());
-        } else {
+        else
             displayBlock();
-        }
-
-        if (selected) {
-            setBackground(Color.YELLOW);
-        } else if (highlighted) {
-            setBackground(Color.LIGHT_GRAY);
-        } else {
-            setBackground(Color.decode("#7EA56E"));
-        }
 
         setOpaque(true);
         setBorderPainted(true);
     }
 
-    private void displayUnit(Units unit) {
+    private void displayUnit(Unit unit) {
         String unitType = unit.getClass().getSimpleName().toLowerCase();
         try {
             ImageIcon icon = new ImageIcon(getClass().getResource("/Images/" + unitType + ".png"));
@@ -85,8 +55,72 @@ public class BlockView extends JButton {
         }
     }
 
-    private void displayStructure(Structures structure) {
+    private void displayStructure(Structure structure) {
         String structureType = structure.getClass().getSimpleName().toLowerCase();
+        if (structure.getLevel() == 1) {
+            switch (structure.getDurability()) {
+                case 40:
+                    structureType += "Durability40";
+                    break;
+                case 30:
+                    structureType += "Durability30";
+                    break;
+                case 20:
+                    structureType += "Durability20";
+                    break;
+                case 10:
+                    structureType += "Durability10";
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (structure.getLevel() == 2) {
+            structureType += "2";
+            switch (structure.getDurability()) {
+                case 50:
+                    structureType += "durability50";
+                case 40:
+                    structureType += "durability40";
+                    break;
+                case 30:
+                    structureType += "durability30";
+                    break;
+                case 20:
+                    structureType += "durability20";
+                    break;
+                case 10:
+                    structureType += "durability10";
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (structure.getLevel() == 3) {
+            structureType += "3";
+            switch (structure.getDurability()) {
+                case 60:
+                    structureType += "durability60";
+                case 50:
+                    structureType += "durability50";
+                case 40:
+                    structureType += "durability40";
+                    break;
+                case 30:
+                    structureType += "durability30";
+                    break;
+                case 20:
+                    structureType += "durability20";
+                    break;
+                case 10:
+                    structureType += "durability10";
+                    break;
+                default:
+                    break;
+            }
+        }
+
+
         try {
             ImageIcon icon = new ImageIcon(getClass().getResource("/Images/" + structureType + ".png"));
             setIcon(resizeIcon(icon, 64, 64));
@@ -97,44 +131,42 @@ public class BlockView extends JButton {
     }
 
     private void displayBlock() {
-        setText("");
-
-        if (block instanceof ForestBlock forest) {
-            if (forest.hasForest()) {
-                try {
-                    ImageIcon icon = new ImageIcon(getClass().getResource("/Images/forest.png"));
-                    setIcon(resizeIcon(icon, 64, 64));
-                } catch (Exception e) {
-                    setText("F");
-                    setIcon(null);
-                }
-            } else {
-                try {
-                    ImageIcon icon = new ImageIcon(getClass().getResource("/Images/cutForest.png"));
-                    setIcon(resizeIcon(icon, 64, 64));
-                } catch (Exception e) {
-                    setText("C");
-                    setIcon(null);
-                }
-            }
-        } else if (block instanceof VoidBlock) {
-            try {
-                ImageIcon icon = new ImageIcon(getClass().getResource("/Images/void.png"));
-                setIcon(resizeIcon(icon, 64, 64));
-            } catch (Exception e) {
-                setText("V");
-                setIcon(null);
-                setBackground(Color.DARK_GRAY);
-            }
-        } else if (block instanceof EmptyBlock) {
-            try {
-                ImageIcon icon = new ImageIcon(getClass().getResource("/Images/empty.png"));
-                setIcon(resizeIcon(icon, 64, 64));
-            } catch (Exception e) {
-                setIcon(null);
-            }
+        String blockType = block.getClass().getSimpleName().toLowerCase();
+        if (blockType.equals("forestblock") && block instanceof ForestBlock && !((ForestBlock) block).hasForest())
+            blockType = "emptyblock";
+        try {
+            ImageIcon icon = new ImageIcon(getClass().getResource("/Images/" + blockType + ".png"));
+            setIcon(resizeIcon(icon, 64, 64));
+        } catch (Exception e) {
+            setText(blockType.substring(0, 1).toUpperCase());
+            setIcon(null);
         }
     }
+
+    private ImageIcon resizeIcon(ImageIcon icon, int w, int h) {
+        Image img = icon.getImage();
+        Image resized = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+        return new ImageIcon(resized);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        if (highlighted) {
+            Graphics2D g2d = (Graphics2D) g.create();
+
+            g2d.setColor(new Color(0, 0, 255, 80));
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+
+            g2d.setColor(Color.BLUE);
+            g2d.setStroke(new BasicStroke(3));
+            g2d.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+
+            g2d.dispose();
+        }
+    }
+
 
     public Block getBlock() {
         return block;
@@ -156,9 +188,4 @@ public class BlockView extends JButton {
         this.selected = selected;
     }
 
-    private ImageIcon resizeIcon(ImageIcon icon, int w, int h) {
-        Image img = icon.getImage();
-        Image resized = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
-        return new ImageIcon(resized);
-    }
 }

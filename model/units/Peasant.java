@@ -1,15 +1,15 @@
 package model.units;
 
 import model.Kingdom;
-import model.structures.Structures;
+import model.structures.Structure;
 
-public class Peasant extends Units {
+public class Peasant extends Unit {
     public Peasant() {
-        super(10 , 4, 2, 2, 2, 3, 1);
+        super(10 , 4, 2, 2, 2, 3, 1, true);
     }
 
     @Override
-    public void attack(Units target){
+    public void attack(Unit target){
         int hP = target.getHitPoint() - this.getAttackPower();
         if( hP < 0) {
             hP = 0;
@@ -19,12 +19,22 @@ public class Peasant extends Units {
     }
 
     @Override
-    public void structAttack(Structures target){
+    public void structAttack(Structure target){
         int newDurability = target.getDurability() - this.getAttackPower();
         if( newDurability < 0 ){
             newDurability = 0;
             new Kingdom().deleteStructure(target);
         }
         target.setDurability(newDurability);
+    }
+
+    @Override
+    public boolean getCanMove() {
+        return canMove;
+    }
+
+    @Override
+    public void setCanMove(boolean move) {
+        canMove = move;
     }
 }

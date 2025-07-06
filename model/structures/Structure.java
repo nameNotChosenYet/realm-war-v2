@@ -2,7 +2,7 @@ package model.structures;
 
 import model.Player;
 
-public abstract class Structures {
+public abstract class Structure {
     private int durability;
     private int maintenanceCost;
     private int level;
@@ -12,7 +12,7 @@ public abstract class Structures {
     private Player Owner;
 
 
-    public Structures(int durability, int maintenanceCost, int level, int maxLevel, int levelUpCost, int buildingCost) {
+    public Structure (int durability, int maintenanceCost, int level, int maxLevel, int levelUpCost, int buildingCost) {
         this.durability = durability;
         this.maintenanceCost = maintenanceCost;
         this.level = level;
@@ -26,14 +26,14 @@ public abstract class Structures {
     }
 
     public void levelUp() {
-        if (level < maxLevel) {
-            this.level++;
-            durability += 10;
-        }
+        this.level++;
+        durability += 10;
+        Owner.getKingdom().setGold(Owner.getKingdom().getGold() - levelUpCost);
+        if (level != maxLevel)
+            levelUpCost *= 2;
     }
 
 
-    // getters and setters
     public int getDurability() {
         return durability;
     }
@@ -66,6 +66,8 @@ public abstract class Structures {
         return level;
     }
 
-
+    public int getMaxLevel() {
+        return maxLevel;
+    }
 
 }

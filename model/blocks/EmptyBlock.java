@@ -1,7 +1,5 @@
 package model.blocks;
 
-import java.awt.*;
-
 public class EmptyBlock extends Block {
 
     public EmptyBlock(int row, int col) {
@@ -10,18 +8,8 @@ public class EmptyBlock extends Block {
 
     @Override
     public boolean isBuildable() {
-        return owned;
-    }
-
-    @Override
-    public String getType() {
-        return "Empty Block";
-    }
-
-    @Override
-    public Color getColor() {
-        return Color.LIGHT_GRAY;
-    }
+        return owned && !hasStructure();
+    } // need to fix this
 
     @Override
     public int getGoldGeneration() {

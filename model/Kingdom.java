@@ -1,12 +1,12 @@
 package model;
 
+import model.blocks.Block;
+import model.grid.Grid;
 import model.structures.Farm;
 import model.structures.Market;
+import model.structures.Structure;
 import model.structures.TownHall;
-import model.units.Units;
-import model.blocks.Block;
-import model.structures.Structures;
-import model.Grid.Grid;
+import model.units.Unit;
 
 import java.util.ArrayList;
 
@@ -15,8 +15,8 @@ public class Kingdom {
     private Grid grid;
     private int food;
     private int gold;
-    private ArrayList<Units> units;
-    private ArrayList<Structures> structures;
+    private ArrayList<Unit> units;
+    private ArrayList<Structure> structures;
     private ArrayList<Block> blocks;
 
     public Kingdom() {
@@ -30,7 +30,7 @@ public class Kingdom {
 
 
     public void generateResources() {
-        for (Structures structure : structures) {
+        for (Structure structure : structures) {
             if (structure instanceof TownHall) {
                 TownHall townHall = (TownHall) structure;
                 this.gold += townHall.getGoldPerTurn();
@@ -43,58 +43,56 @@ public class Kingdom {
                 market.produce_gold(this);
             }
         }
-        for (Units u : units) {
-            this.gold -= u.getPayment();
+        for (Unit u : units) {
             this.food -= u.getRation();
         }
     }
 
 
-    public ArrayList<Structures> getStructures() {
+    public ArrayList<Structure> getStructures() {
         return structures;
     }
 
-    public ArrayList<Units> getUnits() {
+    public ArrayList<Unit> getUnits() {
         return units;
     }
 
-    public void addUnit(Units unit) {
+    public void addUnit(Unit unit) {
         this.units.add(unit);
     }
 
 
-    public boolean canCreateUnit(Units unit) {
+    public boolean canCreateUnit(Unit unit) {
         return this.gold >= unit.getPayment() && this.food >= unit.getRation();
     }
 
-    public boolean createUnit(Units unit) {
-        if (canCreateUnit(unit)) {
-            this.gold -= unit.getPayment();
-            this.food -= unit.getRation();
-            this.units.add(unit);
-            return true;
-        }
-        return false;
+    public void createUnit(Unit unit) {
+        this.gold -= unit.getPayment();
+        this.food -= unit.getRation();
+        this.units.add(unit);
     }
 
-    public void addStructure(Structures structure) {
+    public void addStructure(Structure structure) {
         this.structures.add(structure);
     }
 
 
-    public boolean canBuildStructure(Structures structure) {
+    public boolean canBuildStructure(Structure structure) {
         return this.gold >= structure.getBuildingCost();
     }
 
-    public boolean buildStructure(Structures structure) {
-        if (canBuildStructure(structure)) {
-            this.gold -= structure.getBuildingCost();
-            this.structures.add(structure);
-            return true;
-        }
-        return false;
+    public void buildStructure(Structure structure) {
+        this.gold -= structure.getBuildingCost();
+        this.structures.add(structure);
     }
 
+    public void addGold(int add) {
+        gold += add;
+    }
+
+    public void addFood(int add) {
+        food += add;
+    }
 
     public int getFood() {
         return this.food;
@@ -112,11 +110,11 @@ public class Kingdom {
         this.gold = gold;
     }
 
-    public void deleteUnit(Units unit) {
+    public void deleteUnit(Unit unit) {
         units.remove(unit);
     }
 
-    public void deleteStructure(Structures structure) {
+    public void deleteStructure(Structure structure) {
         structures.remove(structure);
     }
 

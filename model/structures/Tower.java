@@ -1,6 +1,6 @@
 package model.structures;
 
-public class Tower extends Structures {
+public class Tower extends Structure {
     private int defendRange;
 
     public Tower() {

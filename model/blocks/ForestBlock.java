@@ -1,7 +1,5 @@
 package model.blocks;
 
-import java.awt.*;
-
 public class ForestBlock extends Block {
 
     private boolean forestCut = false;
@@ -20,18 +18,8 @@ public class ForestBlock extends Block {
 
     @Override
     public boolean isBuildable() {
-        return owned && forestCut;
-    }
-
-    @Override
-    public String getType() {
-        return "Forest Block";
-    }
-
-    @Override
-    public Color getColor() {
-        return forestCut ? Color.ORANGE : new Color(34, 139, 34);
-    }
+        return owned && !hasStructure();
+    } // need to fix this
 
     @Override
     public int getGoldGeneration() {

@@ -2,7 +2,7 @@ package model.structures;
 
 import model.Kingdom;
 
-public class Farm extends Structures{
+public class Farm extends Structure {
     private int foodPerTurn;
 
     public Farm() {

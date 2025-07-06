@@ -2,7 +2,15 @@ package controller;
 
 import model.Kingdom;
 import model.Player;
+import model.blocks.Block;
+import model.grid.Grid;
+import model.units.Unit;
+import view.GamePanel;
 import view.HUDPanel;
+import view.StructureInfoDialog;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameController {
     private Player player1;
@@ -11,15 +19,15 @@ public class GameController {
     private Kingdom kingdom1;
     private Kingdom kingdom2;
     private HUDPanel hudPanel;
+    private List<StructureInfoDialog> structureInfoDialogs = new ArrayList<>();
     private String selectedUnitType;
     private String selectedStructureType;
+    private int turnCount = 0;
+
+    private TurnManager turnManager;
 
     public GameController() {
-        this.kingdom1 = new Kingdom();
-        this.kingdom2 = new Kingdom();
-        this.player1 = new Player(kingdom1, "Player 1");
-        this.player2 = new Player(kingdom2, "Player 2");
-        this.currentPlayer = player1;
+        initializeGame();
     }
 
     private void initializeGame() {
@@ -30,23 +38,50 @@ public class GameController {
 
         currentPlayer = player1;
         currentPlayer.setTurn(true);
+
+        turnManager = new TurnManager(this);
+        turnManager.startTurnTimer();
     }
 
     public void endTurn() {
+        turnCount++;
+
         currentPlayer.endTurn();
+        clearSelectedStructureType();
+        clearSelectedUnitType();
 
         if (currentPlayer == player1) {
             currentPlayer = player2;
         } else {
             currentPlayer = player1;
         }
+        currentPlayer.startTurn(turnCount);
 
-        currentPlayer.startTurn();
+        for (int row = 0; row < Grid.getRow(); row++) {
+            for (int col = 0; col < Grid.getCol(); col++) {
+                Block block = Grid.getBlockViews()[row][col].getBlock();
+                if (block.hasUnit() && block.getUnit().getOwner().equals(currentPlayer)) {
+                    block.getUnit().setCanMove(true);
+                }
+            }
+        }
+        for (StructureInfoDialog s : structureInfoDialogs) {
+            s.dispose();
+        }
+        structureInfoDialogs.clear();
 
         if (hudPanel != null) {
             hudPanel.setCurrentPlayer(currentPlayer.getName());
             hudPanel.updateStats();
             hudPanel.addLogMessage(currentPlayer.getName() + "'s turn started");
+        }
+
+        turnManager.restartTurnTimer();
+    }
+
+    public void updateHUD() {
+        if (hudPanel != null) {
+            hudPanel.updateStats();
         }
     }
 
@@ -54,9 +89,6 @@ public class GameController {
         this.selectedUnitType = unitType;
         this.selectedStructureType = null;
     }
-
-
-
 
     public void selectStructureType(String structureType) {
         this.selectedStructureType = structureType;
@@ -77,54 +109,26 @@ public class GameController {
         }
     }
 
-    public boolean levelUpUnit(model.units.Units unit) {
-        if (currentPlayer.getKingdom().getGold() >= unit.getLevelUpCost() && unit.canLevelUp()) {
-            currentPlayer.getKingdom().setGold(currentPlayer.getKingdom().getGold() - unit.getLevelUpCost());
-            unit.levelUp();
-            addLogMessage(currentPlayer.getName() + " leveled up " + unit.getClass().getSimpleName());
-            return true;
-        }
-        return false;
+    public Player getCurrentPlayer() {
+        return currentPlayer;
     }
-
-
-    public boolean levelUpStructure(model.structures.Structures structure) {
-        if (currentPlayer.getKingdom().getGold() >= structure.getLevelUpCost() && structure.canLevelUp()) {
-            currentPlayer.getKingdom().setGold(currentPlayer.getKingdom().getGold() - structure.getLevelUpCost());
-            structure.levelUp();
-            addLogMessage(currentPlayer.getName() + " leveled up " + structure.getClass().getSimpleName() + " to level " + structure.getLevel());
-            if (hudPanel != null) {
-                hudPanel.updateStats();
-            }
-            return true;
-        } else {
-            addLogMessage("Cannot level up: insufficient gold or max level reached");
-            return false;
-        }
+    public String getCurrentPlayerName() {
+        return currentPlayer.getName();
     }
-
-
-    public void newGame() {
-        initializeGame();
-        if (hudPanel != null) {
-            hudPanel.setCurrentPlayer(currentPlayer.getName());
-            hudPanel.updateStats();
-            hudPanel.addLogMessage("New game started!");
-        }
-    }
-
-
-
-
-
-
-
-    public Player getCurrentPlayer() { return currentPlayer; }
-    public String getCurrentPlayerName() { return currentPlayer.getName(); }
     public Kingdom getKingdom1() { return player1.getKingdom(); }
     public Kingdom getKingdom2() { return player2.getKingdom(); }
     public String getSelectedUnitType() { return selectedUnitType; }
     public String getSelectedStructureType() { return selectedStructureType; }
     public Player getPlayer1() { return player1; }
     public Player getPlayer2() { return player2; }
+    public void setHudPanel(HUDPanel hudPanel) {
+        this.hudPanel = hudPanel;
+    }
+    public HUDPanel getHudPanel() {
+        return hudPanel;
+    }
+
+    public List<StructureInfoDialog> getStructureInfoDialogs() {
+        return structureInfoDialogs;
+    }
 }

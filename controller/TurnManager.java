@@ -1,32 +1,36 @@
 package controller;
 
-import model.Kingdom;
-import model.Player;
-import model.Player.*;
+import javax.swing.Timer;
 
 public class TurnManager {
-    boolean player1Turn;
-    boolean player2Turn;
+    private Timer turnTimer;
+    private Timer resourceTimer;
 
-    public TurnManager(GameController gameController) {
-        player1Turn = true;
-        player2Turn = false;
+    public TurnManager(GameController controller) {
+        turnTimer = new Timer(30_000, e -> {
+            controller.endTurn();
+            restartTurnTimer();
+        });
+        turnTimer.setRepeats(false);
+
+        resourceTimer = new Timer(5_000, e -> {
+            controller.getCurrentPlayer().getKingdom().generateResources();
+            controller.updateHUD();
+        });
+        resourceTimer.setRepeats(true);
+        resourceTimer.start();
     }
 
-
-    public void changeTurn() {
-        if (player1Turn) {
-            player1Turn = false;
-            player2Turn = true;
-        }else {
-            player1Turn = true;
-            player2Turn = false;
-        }
+    public void startTurnTimer() {
+        turnTimer.start();
     }
 
-    public void turn(Player player) {
-
+    public void restartTurnTimer() {
+        turnTimer.restart();
     }
 
-
+    public void stopTimers() {
+        turnTimer.stop();
+        resourceTimer.stop();
+    }
 }

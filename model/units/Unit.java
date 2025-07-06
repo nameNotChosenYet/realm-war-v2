@@ -1,9 +1,9 @@
 package model.units;
 
 import model.Player;
-import model.structures.*;
+import model.structures.Structure;
 
-public abstract class Units {
+public abstract class Unit {
     private int hitPoint;
     private int movementRange;
     private int attackPower;
@@ -12,9 +12,10 @@ public abstract class Units {
     private int ration;
     private int unitSpace;
     private Player Owner;
+    protected boolean canMove;
 
 
-    public Units(int hitPoint, int movementRange, int attackPower, int attackRange, int payment, int ration, int unitSpace) {
+    public Unit(int hitPoint, int movementRange, int attackPower, int attackRange, int payment, int ration, int unitSpace, boolean canMove) {
         this.hitPoint = hitPoint;
         this.movementRange = movementRange;
         this.attackPower = attackPower;
@@ -22,30 +23,17 @@ public abstract class Units {
         this.payment = payment;
         this.ration = ration;
         this.unitSpace = unitSpace;
+        this.canMove = canMove;
     }
 
 
-    public abstract void attack(Units target);
+    public abstract void attack(Unit target);
 
-    public abstract void structAttack(Structures target);
+    public abstract void structAttack(Structure target);
 
-    public void levelUp() {
+    public abstract boolean getCanMove();
 
-    }
-
-    public boolean canLevelUp() {
-        return true;
-    }
-
-
-    // getter and setters
-
-    public void getLevel() {
-    }
-
-    public int getLevelUpCost() {
-        return 1;
-    }
+    public abstract void setCanMove(boolean move);
 
     public Player getOwner() {
         return Owner;

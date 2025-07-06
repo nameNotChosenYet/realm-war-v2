@@ -79,10 +79,10 @@ public class HUDPanel extends JPanel {
     private JPanel createHorizontalPlayerStatsPanel() {
         JPanel mainPanel = new JPanel(new GridLayout(2, 1, 0, 5));
 
-        JPanel player1Panel = createHorizontalPlayerStats("Player 1", Color.BLUE,
+        JPanel player1Panel = createHorizontalPlayerStats("Player 1", Color.RED,
                 player1GoldLabel, player1FoodLabel, player1UnitsLabel, player1StructuresLabel);
 
-        JPanel player2Panel = createHorizontalPlayerStats("Player 2", Color.RED,
+        JPanel player2Panel = createHorizontalPlayerStats("Player 2", Color.BLUE,
                 player2GoldLabel, player2FoodLabel, player2UnitsLabel, player2StructuresLabel);
 
         mainPanel.add(player1Panel);
@@ -125,7 +125,7 @@ public class HUDPanel extends JPanel {
 
 
     private JPanel createUnitSelectionPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 2, 3, 3));
+        JPanel panel = new JPanel(new GridLayout(3, 2, 3, 3));
         panel.setBorder(BorderFactory.createTitledBorder("Units"));
         panel.setPreferredSize(new Dimension(0, 120));
 
@@ -144,6 +144,16 @@ public class HUDPanel extends JPanel {
             });
 
         }
+        JButton clearButton = new JButton("Clear Selection");
+        clearButton.setFont(new Font("Arial", Font.PLAIN, 9));
+        clearButton.setPreferredSize(new Dimension(200, 25));
+
+        panel.add(clearButton);
+
+        clearButton.addActionListener(e -> {
+            gameController.clearSelectedUnitType();
+            addLogMessage("The selected unit successfully cleared");
+        });
 
         return panel;
     }
@@ -154,7 +164,6 @@ public class HUDPanel extends JPanel {
         panel.setPreferredSize(new Dimension(0, 150));
 
         String[] structures = {"Barrack", "Farm", "Market", "Tower"};
-
 
         for (String structure : structures) {
             JButton structureButton = new JButton(structure);
@@ -168,14 +177,18 @@ public class HUDPanel extends JPanel {
                 addLogMessage("Selected structure: " + structure);
             });
 
-
-
         }
 
-        panel.add(new JPanel());
+        JButton clearButton = new JButton("Clear Selection");
+        clearButton.setFont(new Font("Arial", Font.PLAIN, 9));
+        clearButton.setPreferredSize(new Dimension(200, 25));
 
+        panel.add(clearButton);
 
-
+        clearButton.addActionListener(e -> {
+            gameController.clearSelectedStructureType();
+            addLogMessage("The selected structure successfully cleared");
+        });
 
         return panel;
     }
