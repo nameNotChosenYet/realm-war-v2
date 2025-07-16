@@ -30,6 +30,23 @@ public class Knight extends Unit {
     }
 
     @Override
+    public boolean canUpgrade() {
+        return false;
+    }
+
+    @Override
+    public int getUpgradeCost() {
+        return 0;
+    }
+
+    @Override
+    public Unit getNextTierUnit() {
+        return null;
+    }
+
+
+
+    @Override
     public boolean getCanMove() {
         return canMove;
     }

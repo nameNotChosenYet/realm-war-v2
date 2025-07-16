@@ -11,8 +11,6 @@ import model.structures.*;
 import model.units.*;
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class GamePanel extends JPanel {
@@ -35,7 +33,7 @@ public class GamePanel extends JPanel {
     private void initializeGrid() {
         Random random = new Random();
 
-        for (int row = 0; row < Grid.getRow(); row++)
+        for (int row = 0; row < Grid.getRow(); row++) {
             for (int col = 0; col < Grid.getCol(); col++) {
                 Block block;
 
@@ -60,9 +58,10 @@ public class GamePanel extends JPanel {
                 BlockView blockView = new BlockView(block);
                 Grid.getBlockViews()[row][col] = blockView;
                 addPlayerZoneBorder(blockView, row, col);
-                addClickListener(blockView, row, col);
+                addClickListener(blockView);
                 add(blockView);
             }
+        }
     }
 
     private boolean isPlayerZone(int row, int col) {
@@ -82,26 +81,33 @@ public class GamePanel extends JPanel {
             ));
         else
             blockView.setBorder(BorderFactory.createLineBorder(new Color(92, 120, 80), 1));
-
     }
 
-    private void addClickListener(BlockView blockView, int row, int col) {
+    private void addClickListener(BlockView blockView) {
         blockView.addActionListener(e -> {
-            handleBlockClick(row,col);
+            handleBlockClick(blockView.getBlock());
         });
     }
 
-    private void handleBlockClick(int row, int col) {
+    private void handleBlockClick(Block block) {
+        int row = block.getRow();
+        int col = block.getCol();
+        String currentPlayerName = gameController.getCurrentPlayerName();
 
-        Block block = Grid.getBlockViews()[row][col].getBlock();
-        String currentPlayer = gameController.getCurrentPlayerName();
-
-        if (row == selectedRow && col == selectedCol && selectedUnit != null) {
-            clearSelectionHighlights();
-            selectedRow = -1;
-            selectedCol = -1;
-            selectedUnit = null;
-            repaint();
+        if (gameController.getSelectedUnitType() != null) {
+            if (block.isOwned() && block.getOwner().equals(currentPlayerName) && !block.hasUnit() && !block.hasStructure()) {
+                placeUnit(row, col, gameController.getSelectedUnitType());
+            } else {
+                gameController.addLogMessage("Cannot place unit here!");
+            }
+            return;
+        }
+        if (gameController.getSelectedStructureType() != null) {
+            if (block.isBuildable() && block.isOwned() && block.getOwner().equals(currentPlayerName) && !block.hasStructure() && !block.hasUnit()) {
+                placeStructure(row, col, gameController.getSelectedStructureType());
+            } else {
+                gameController.addLogMessage("Cannot build structure here!");
+            }
             return;
         }
 
@@ -116,90 +122,67 @@ public class GamePanel extends JPanel {
             }
         }
 
+        gameController.selectBlock(block);
 
-        if (gameController.getSelectedUnitType() != null)
-            selectedUnit = createUnit(gameController.getSelectedUnitType(), gameController.getCurrentPlayer());
+        if (row == selectedRow && col == selectedCol) {
+            clearSelectionHighlights();
+            selectedRow = -1;
+            selectedCol = -1;
+            selectedUnit = null;
+            repaint();
+            return;
+        }
 
-        if (gameController.getSelectedStructureType() != null)
-            selectedStructure = createStructure(gameController.getSelectedStructureType(), gameController.getCurrentPlayer());
+        clearSelectionHighlights();
 
-        if (block.hasUnit() && block.getUnit().getOwner().getName().equals(currentPlayer) && Grid.getBlockViews()[row][col].getBlock().getUnit().getCanMove()) {
+        if (block.hasUnit() && block.getUnit().getOwner().getName().equals(currentPlayerName) && block.getUnit().getCanMove()) {
             selectedUnit = block.getUnit();
             selectedRow = row;
             selectedCol = col;
             Grid.getBlockViews()[row][col].setSelected(true);
             highlightMovementRange();
-
-        } else if (block.hasStructure() && block.getStructure().getOwner().getName().equals(currentPlayer)) {
-            selectedStructure = block.getStructure();
+        } else if (block.hasStructure() && block.getStructure().getOwner().getName().equals(currentPlayerName)) {
             selectedRow = row;
             selectedCol = col;
             Grid.getBlockViews()[row][col].setSelected(true);
-            StructureInfoDialog dialog = new StructureInfoDialog((JFrame) SwingUtilities.getWindowAncestor(this),
-                    selectedStructure, row, col, gameController);
-            gameController.getStructureInfoDialogs().add(dialog);
-
-        } else {
-            if (gameController.getSelectedUnitType() != null && block.isOwned() &&
-                    block.getOwner().equals(currentPlayer) && !block.hasUnit() && !block.hasStructure())
-
-                placeUnit(row, col, gameController.getSelectedUnitType());
-            else if (gameController.getSelectedStructureType() != null && block.isBuildable() &&
-                    block.getOwner().equals(currentPlayer) && !block.hasStructure() && !block.hasUnit())
-                placeStructure(row, col, gameController.getSelectedStructureType());
-
         }
-
         repaint();
     }
 
     private void moveUnit(int fromRow, int fromCol, int toRow, int toCol) {
         Block fromBlock = Grid.getBlockViews()[fromRow][fromCol].getBlock();
         Block toBlock = Grid.getBlockViews()[toRow][toCol].getBlock();
-
-
         Unit unit = fromBlock.getUnit();
-
         if (toBlock.hasStructure()) {
             if (unit.getHitPoint() < toBlock.getStructure().getDurability()) {
-                Grid.getBlockViews()[toRow][toCol].getBlock().getStructure().setDurability(
-                        toBlock.getStructure().getDurability() - unit.getHitPoint());
+                toBlock.getStructure().setDurability(toBlock.getStructure().getDurability() - unit.getHitPoint());
                 Grid.getBlockViews()[toRow][toCol].updateDisplay();
                 clearSelectionHighlights();
                 repaint();
                 return;
             }
         }
-
         fromBlock.setUnit(null);
         toBlock.setUnit(unit);
-
         Grid.getBlockViews()[fromRow][fromCol].updateDisplay();
         Grid.getBlockViews()[toRow][toCol].updateDisplay();
-
         if (gameController.getCurrentPlayer().getName().equals("Player 1")) {
             Grid.getBlockViews()[toRow][toCol].setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.RED, 3),
                     BorderFactory.createLineBorder(new Color(92, 120, 80), 1)
             ));
             Grid.getBlockViews()[toRow][toCol].getBlock().setOwner(gameController.getCurrentPlayerName());
-
             if (Grid.getBlockViews()[toRow][toCol].getBlock() instanceof ForestBlock)
                 ((ForestBlock) Grid.getBlockViews()[toRow][toCol].getBlock()).cutForest();
-        }
-        else {
+        } else {
             Grid.getBlockViews()[toRow][toCol].setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.BLUE, 3),
                     BorderFactory.createLineBorder(new Color(92, 120, 80), 1)
             ));
             Grid.getBlockViews()[toRow][toCol].getBlock().setOwner(gameController.getCurrentPlayerName());
-
             if (Grid.getBlockViews()[toRow][toCol].getBlock() instanceof ForestBlock)
                 ((ForestBlock) Grid.getBlockViews()[toRow][toCol].getBlock()).cutForest();
         }
-
-
-
         gameController.addLogMessage(unit.getClass().getSimpleName() + " moved to (" + toRow + "," + toCol + ")");
     }
 
@@ -259,32 +242,18 @@ public class GamePanel extends JPanel {
 
     private void highlightMovementRange() {
         Player currentPlayer = gameController.getCurrentPlayer();
-
         for (int row = 0; row < Grid.getRow(); row++) {
             for (int col = 0; col < Grid.getCol(); col++) {
                 Block block = Grid.getBlockViews()[row][col].getBlock();
-
                 if (block.isOwned() && block.getOwner().equals(currentPlayer.getName())) {
-                    int[][] dirs = {
-                            {0, 1}, {1, 0}, {0, -1}, {-1, 0},
-                            {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
-                    };
+                    int[][] dirs = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
                     for (int[] d : dirs) {
                         int newRow = row + d[0];
                         int newCol = col + d[1];
-
-                        if (newRow >= 0 && newRow < Grid.getRow()
-                                && newCol >= 0 && newCol < Grid.getCol()) {
-
+                        if (newRow >= 0 && newRow < Grid.getRow() && newCol >= 0 && newCol < Grid.getCol()) {
                             Block neighbor = Grid.getBlockViews()[newRow][newCol].getBlock();
-
-                            if (
-                                    (
-                                            (neighbor.isOwned() && !neighbor.getOwner().equals(currentPlayer.getName()))
-                                                    || (!neighbor.isOwned())
-                                    )
-                                            && !(neighbor instanceof VoidBlock) && canTakeEnemyBlock(newRow, newCol, row, col)
-                            ) {
+                            if (((neighbor.isOwned() && !neighbor.getOwner().equals(currentPlayer.getName())) || (!neighbor.isOwned()))
+                                    && !(neighbor instanceof VoidBlock) && canTakeEnemyBlock(newRow, newCol, row, col)) {
                                 Grid.getBlockViews()[newRow][newCol].setHighlighted(true);
                                 Grid.getBlockViews()[newRow][newCol].repaint();
                             }
@@ -295,12 +264,9 @@ public class GamePanel extends JPanel {
         }
     }
 
-
-
     private void placeUnit(int row, int col, String unitType) {
         Player currentPlayer = gameController.getCurrentPlayer();
         Unit unit = createUnit(unitType, currentPlayer);
-
         if (gameController.getCurrentPlayer().getKingdom().canCreateUnit(unit)) {
             Block block = Grid.getBlockViews()[row][col].getBlock();
             block.setUnit(unit);
@@ -309,15 +275,13 @@ public class GamePanel extends JPanel {
             gameController.getCurrentPlayer().getKingdom().createUnit(unit);
             gameController.getHudPanel().updateStats();
             gameController.clearSelectedUnitType();
-        }
-        else
+        } else
             gameController.addLogMessage("Not enough resources to create " + unitType);
     }
 
     private void placeStructure(int row, int col, String structureType) {
         Player currentPlayer = gameController.getCurrentPlayer();
         Structure structure = createStructure(structureType, currentPlayer);
-
         if (gameController.getCurrentPlayer().getKingdom().canBuildStructure(structure)) {
             Block block = Grid.getBlockViews()[row][col].getBlock();
             block.setStructure(structure);
@@ -326,8 +290,7 @@ public class GamePanel extends JPanel {
             gameController.getCurrentPlayer().getKingdom().buildStructure(structure);
             gameController.getHudPanel().updateStats();
             gameController.clearSelectedStructureType();
-        }
-        else
+        } else
             gameController.addLogMessage("Not enough gold to build " + structureType);
     }
 
@@ -336,7 +299,6 @@ public class GamePanel extends JPanel {
         TownHall townHall1 = new TownHall();
         block1.setStructure(townHall1);
         Grid.getBlockViews()[0][0].updateDisplay();
-
         Block block2 = Grid.getBlockViews()[9][9].getBlock();
         TownHall townHall2 = new TownHall();
         block2.setStructure(townHall2);
@@ -344,23 +306,21 @@ public class GamePanel extends JPanel {
     }
 
     private boolean canTakeEnemyBlock(int enemyRow, int enemyCol, int row, int col) {
-
         Block enemyBlock = Grid.getBlockViews()[enemyRow][enemyCol].getBlock();
-
         if (enemyBlock.hasUnit()) {
             Unit enemyUnit = enemyBlock.getUnit();
             Unit myUnit = Grid.getBlockViews()[row][col].getBlock().getUnit();
-            if (myUnit == null) {
-                return false;
-            }
-            if (enemyUnit.getAttackPower() > myUnit.getAttackPower())
-                return false;
-            else
-                return true;
+            if (myUnit == null) return false;
+            return enemyUnit.getAttackPower() <= myUnit.getAttackPower();
         }
-
         return true;
-
     }
 
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+    }
 }

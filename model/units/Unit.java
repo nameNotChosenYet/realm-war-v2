@@ -35,6 +35,12 @@ public abstract class Unit {
 
     public abstract void setCanMove(boolean move);
 
+    public abstract boolean canUpgrade();
+
+    public abstract int getUpgradeCost();
+
+    public abstract Unit getNextTierUnit();
+
     public Player getOwner() {
         return Owner;
     }

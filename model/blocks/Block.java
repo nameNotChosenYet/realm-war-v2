@@ -53,6 +53,15 @@ public abstract class Block {
         return unit;
     }
 
+    public int getRow() {
+        return row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+
     public abstract boolean isBuildable();
 
     public abstract int getGoldGeneration();

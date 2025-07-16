@@ -30,6 +30,21 @@ public class SwordMan extends Unit {
     }
 
     @Override
+    public boolean canUpgrade() {
+        return true;
+    }
+
+    @Override
+    public int getUpgradeCost() {
+        return 50;
+    }
+
+    @Override
+    public Unit getNextTierUnit() {
+        return new Knight();
+    }
+
+    @Override
     public boolean getCanMove() {
         return canMove;
     }

@@ -4,10 +4,11 @@ import model.Kingdom;
 import model.Player;
 import model.blocks.Block;
 import model.grid.Grid;
-import model.units.Unit;
-import view.GamePanel;
+import view.GameFrame;
 import view.HUDPanel;
 import view.StructureInfoDialog;
+import model.structures.Structure;
+import model.units.Unit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,10 @@ public class GameController {
     private String selectedUnitType;
     private String selectedStructureType;
     private int turnCount = 0;
+    private Object selectedEntityOnMap;
+    private Block selectedEntityBlock;
 
+    private GameFrame gameFrame;
     private TurnManager turnManager;
 
     public GameController() {
@@ -43,18 +47,94 @@ public class GameController {
         turnManager.startTurnTimer();
     }
 
+    public void selectBlock(Block block) {
+        clearSelectedUnitType();
+        clearSelectedStructureType();
+
+        this.selectedEntityBlock = block;
+
+        if (block.hasUnit()) {
+            Unit unit = block.getUnit();
+            this.selectedEntityOnMap = unit;
+
+            String unitName = unit.getClass().getSimpleName();
+            String owner = unit.getOwner().getName();
+            int durability = unit.getHitPoint();
+            int maxDurability = unit.getHitPoint();
+            int level = 1;
+            boolean canUpgrade = unit.canUpgrade();
+            int upgradeCost = unit.getUpgradeCost();
+            String iconPath = getIconPathFor(unitName);
+
+            gameFrame.updateEntityInfo(unitName, iconPath, owner, durability, maxDurability, level, canUpgrade, upgradeCost);
+
+        } else if (block.hasStructure()) {
+            Structure structure = block.getStructure();
+            this.selectedEntityOnMap = structure;
+
+            String structureName = structure.getClass().getSimpleName();
+            String owner = structure.getOwner().getName();
+            int durability = structure.getDurability();
+            int maxDurability = 40 + (structure.getLevel() * 10);
+            int level = structure.getLevel();
+            boolean canUpgrade = structure.canLevelUp();
+            int upgradeCost = structure.getLevelUpCost();
+            String iconPath = getIconPathFor(structureName);
+
+            gameFrame.updateEntityInfo(structureName, iconPath, owner, durability, maxDurability, level, canUpgrade, upgradeCost);
+
+        } else {
+            this.selectedEntityOnMap = null;
+            this.selectedEntityBlock = null;
+            gameFrame.clearEntityInfo();
+        }
+    }
+
+
+    public void upgradeSelectedEntity() {
+        if (selectedEntityOnMap == null || selectedEntityBlock == null) {
+            addLogMessage("No entity selected to upgrade.");
+            return;
+        }
+
+        if (selectedEntityOnMap instanceof Unit) {
+            Unit unit = (Unit) selectedEntityOnMap;
+            if (unit.canUpgrade() && currentPlayer.getKingdom().getGold() >= unit.getUpgradeCost()) {
+                currentPlayer.getKingdom().setGold(currentPlayer.getKingdom().getGold() - unit.getUpgradeCost());
+                Unit nextTierUnit = unit.getNextTierUnit();
+                nextTierUnit.setOwner(currentPlayer);
+                selectedEntityBlock.setUnit(nextTierUnit);
+
+                addLogMessage(unit.getClass().getSimpleName() + " upgraded to " + nextTierUnit.getClass().getSimpleName());
+                selectBlock(selectedEntityBlock);
+                updateHUD();
+            } else {
+                addLogMessage("Not enough gold or max tier.");
+            }
+        } else if (selectedEntityOnMap instanceof Structure) {
+            Structure structure = (Structure) selectedEntityOnMap;
+            if (structure.canLevelUp() && currentPlayer.getKingdom().getGold() >= structure.getLevelUpCost()) {
+                structure.levelUp();
+
+                addLogMessage(structure.getClass().getSimpleName() + " upgraded to Level " + structure.getLevel());
+                selectBlock(selectedEntityBlock);
+                updateHUD();
+            } else {
+                addLogMessage("Not enough gold or max level.");
+            }
+        }
+    }
+
     public void endTurn() {
         turnCount++;
-
         currentPlayer.endTurn();
         clearSelectedStructureType();
         clearSelectedUnitType();
+        if (gameFrame != null) gameFrame.clearEntityInfo();
 
-        if (currentPlayer == player1) {
-            currentPlayer = player2;
-        } else {
-            currentPlayer = player1;
-        }
+        if (currentPlayer == player1) currentPlayer = player2;
+        else currentPlayer = player1;
+
         currentPlayer.startTurn(turnCount);
 
         for (int row = 0; row < Grid.getRow(); row++) {
@@ -65,6 +145,7 @@ public class GameController {
                 }
             }
         }
+
         for (StructureInfoDialog s : structureInfoDialogs) {
             s.dispose();
         }
@@ -76,7 +157,12 @@ public class GameController {
             hudPanel.addLogMessage(currentPlayer.getName() + "'s turn started");
         }
 
-        turnManager.restartTurnTimer();
+        if (turnManager != null) {
+            turnManager.restartTurnTimer();
+        }
+        if (gameFrame != null) {
+            gameFrame.onTurnEnded();
+        }
     }
 
     public void updateHUD() {
@@ -85,22 +171,56 @@ public class GameController {
         }
     }
 
+    public void setGameFrame(GameFrame gameFrame) {
+        this.gameFrame = gameFrame;
+    }
+
     public void selectUnitType(String unitType) {
         this.selectedUnitType = unitType;
         this.selectedStructureType = null;
+        if (gameFrame != null) {
+            gameFrame.clearEntityInfo();
+            String iconPath = getIconPathFor(unitType);
+            gameFrame.updateBuildSelectionInfo(unitType, iconPath);
+        }
     }
 
     public void selectStructureType(String structureType) {
         this.selectedStructureType = structureType;
         this.selectedUnitType = null;
+        if (gameFrame != null) {
+            gameFrame.clearEntityInfo();
+            String iconPath = getIconPathFor(structureType);
+            gameFrame.updateBuildSelectionInfo(structureType, iconPath);
+        }
     }
 
     public void clearSelectedUnitType() {
-        this.selectedUnitType = null;
+        if (this.selectedUnitType != null) {
+            this.selectedUnitType = null;
+            if (gameFrame != null) gameFrame.clearBuildSelectionInfo();
+        }
     }
 
     public void clearSelectedStructureType() {
-        this.selectedStructureType = null;
+        if (this.selectedStructureType != null) {
+            this.selectedStructureType = null;
+            if (gameFrame != null) gameFrame.clearBuildSelectionInfo();
+        }
+    }
+
+    private String getIconPathFor(String type) {
+        if (type == null) return null;
+
+        String basePath = "/Images/";
+        switch (type.toLowerCase()) {
+            case "knight": case "peasant": case "spearman": case "swordman":
+                return basePath  + type.toLowerCase() + ".png";
+            case "barrack": case "farm": case "market": case "tower":
+                return basePath  + type.toLowerCase() + ".png";
+            default:
+                return null;
+        }
     }
 
     public void addLogMessage(String message) {
@@ -127,7 +247,6 @@ public class GameController {
     public HUDPanel getHudPanel() {
         return hudPanel;
     }
-
     public List<StructureInfoDialog> getStructureInfoDialogs() {
         return structureInfoDialogs;
     }
