@@ -1,12 +1,12 @@
-package model;
+package org.example.model;
 
-import model.blocks.Block;
-import model.grid.Grid;
-import model.structures.Farm;
-import model.structures.Market;
-import model.structures.Structure;
-import model.structures.TownHall;
-import model.units.Unit;
+import org.example.model.blocks.Block;
+import org.example.model.Grid.Grid;
+import org.example.model.structures.Farm;
+import org.example.model.structures.Market;
+import org.example.model.structures.Structure;
+import org.example.model.structures.TownHall;
+import org.example.model.units.Unit;
 
 import java.util.ArrayList;
 

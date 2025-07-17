@@ -1,4 +1,4 @@
-package model.structures;
+package org.example.model.structures;
 
 public class Tower extends Structure {
     private int defendRange;

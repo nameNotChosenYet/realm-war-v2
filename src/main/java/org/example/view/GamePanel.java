@@ -1,14 +1,14 @@
-package view;
+package org.example.view;
 
-import controller.GameController;
-import model.Player;
-import model.blocks.Block;
-import model.blocks.EmptyBlock;
-import model.blocks.ForestBlock;
-import model.blocks.VoidBlock;
-import model.grid.Grid;
-import model.structures.*;
-import model.units.*;
+import org.example.controller.GameController;
+import org.example.model.Player;
+import org.example.model.blocks.Block;
+import org.example.model.blocks.EmptyBlock;
+import org.example.model.blocks.ForestBlock;
+import org.example.model.blocks.VoidBlock;
+import org.example.model.Grid.Grid;
+import org.example.model.structures.*;
+import org.example.model.units.*;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;

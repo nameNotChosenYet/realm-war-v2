@@ -1,6 +1,6 @@
-package model.structures;
+package org.example.model.structures;
 
-import model.Kingdom;
+import org.example.model.Kingdom;
 
 public class Market extends Structure {
     private int goldPerTurn;

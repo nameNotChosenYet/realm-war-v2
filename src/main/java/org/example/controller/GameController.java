@@ -1,14 +1,14 @@
-package controller;
+package org.example.controller;
 
-import model.Kingdom;
-import model.Player;
-import model.blocks.Block;
-import model.grid.Grid;
-import view.GameFrame;
-import view.HUDPanel;
-import view.StructureInfoDialog;
-import model.structures.Structure;
-import model.units.Unit;
+import org.example.model.Kingdom;
+import org.example.model.Player;
+import org.example.model.blocks.Block;
+import org.example.model.Grid.Grid;
+import org.example.view.GameFrame;
+import org.example.view.HUDPanel;
+import org.example.view.StructureInfoDialog;
+import org.example.model.structures.Structure;
+import org.example.model.units.Unit;
 
 import java.util.ArrayList;
 import java.util.List;

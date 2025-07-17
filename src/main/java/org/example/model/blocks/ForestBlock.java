@@ -1,4 +1,4 @@
-package model.blocks;
+package org.example.model.blocks;
 
 public class ForestBlock extends Block {
 

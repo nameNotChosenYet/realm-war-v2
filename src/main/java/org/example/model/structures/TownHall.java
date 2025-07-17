@@ -1,4 +1,4 @@
-package model.structures;
+package org.example.model.structures;
 
 public class TownHall extends Structure {
     private int goldPerTurn;

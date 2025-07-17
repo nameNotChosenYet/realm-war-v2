@@ -1,7 +1,7 @@
-package model.units;
+package org.example.model.units;
 
-import model.Kingdom;
-import model.structures.Structure;
+import org.example.model.Kingdom;
+import org.example.model.structures.Structure;
 
 public class SwordMan extends Unit {
 

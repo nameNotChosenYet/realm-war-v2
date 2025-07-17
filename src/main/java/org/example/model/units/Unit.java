@@ -1,7 +1,7 @@
-package model.units;
+package org.example.model.units;
 
-import model.Player;
-import model.structures.Structure;
+import org.example.model.Player;
+import org.example.model.structures.Structure;
 
 public abstract class Unit {
     private int hitPoint;

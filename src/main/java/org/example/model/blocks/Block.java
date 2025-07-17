@@ -1,7 +1,7 @@
-package model.blocks;
+package org.example.model.blocks;
 
-import model.structures.Structure;
-import model.units.Unit;
+import org.example.model.structures.Structure;
+import org.example.model.units.Unit;
 
 public abstract class Block {
 

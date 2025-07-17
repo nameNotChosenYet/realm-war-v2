@@ -1,5 +1,7 @@
-import view.GameFrame;
-import view.MainMenu;
+package org.example;
+
+import org.example.view.GameFrame;
+import org.example.view.MainMenu;
 
 import java.security.KeyStore;
 

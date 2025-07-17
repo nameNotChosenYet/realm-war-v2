@@ -1,7 +1,7 @@
-package view;
+package org.example.view;
 
-import controller.GameController;
-import model.Kingdom;
+import org.example.controller.GameController;
+import org.example.model.Kingdom;
 
 import javax.swing.*;
 import java.awt.*;

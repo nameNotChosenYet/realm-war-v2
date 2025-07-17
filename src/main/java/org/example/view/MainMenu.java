@@ -1,4 +1,4 @@
-package view;
+package org.example.view;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,14 +17,14 @@ public class MainMenu extends JFrame {
 
     private void initializeUI() {
         JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBackground(new Color(248, 248, 255));
+        mainPanel.setBackground(new Color(45, 50, 60));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setBackground(Color.WHITE);
         centerPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(92, 120, 80), 2),
+                BorderFactory.createLineBorder(new Color(180, 160, 110), 7),
                 BorderFactory.createEmptyBorder(40, 60, 40, 60)
         ));
 
@@ -121,7 +121,7 @@ public class MainMenu extends JFrame {
                 JOptionPane.showMessageDialog(this, "Continue Game clicked");
                 break;
             case "Game History":
-                JOptionPane.showMessageDialog(this, "Game History clicked");
+                new GameHistoryDialog(this).setVisible(true);
                 break;
             case "Exit":
                 System.exit(0);

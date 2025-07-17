@@ -1,11 +1,11 @@
-package view;
+package org.example.view;
 
-import model.blocks.Block;
-import model.blocks.EmptyBlock;
-import model.blocks.ForestBlock;
-import model.blocks.VoidBlock;
-import model.structures.Structure;
-import model.units.Unit;
+import org.example.model.blocks.Block;
+import org.example.model.blocks.EmptyBlock;
+import org.example.model.blocks.ForestBlock;
+import org.example.model.blocks.VoidBlock;
+import org.example.model.structures.Structure;
+import org.example.model.units.Unit;
 
 import javax.swing.*;
 import java.awt.*;

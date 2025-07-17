@@ -1,4 +1,4 @@
-package controller;
+package org.example.controller;
 
 import javax.swing.Timer;
 

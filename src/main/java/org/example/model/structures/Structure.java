@@ -1,6 +1,6 @@
-package model.structures;
+package org.example.model.structures;
 
-import model.Player;
+import org.example.model.Player;
 
 public abstract class Structure {
     private int durability;

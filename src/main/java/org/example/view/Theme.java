@@ -1,5 +1,5 @@
 // In a new file: view/Theme.java
-package view;
+package org.example.view;
 
 import java.awt.*;
 

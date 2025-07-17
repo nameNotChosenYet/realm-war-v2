@@ -1,7 +1,7 @@
-package model.structures;
+package org.example.model.structures;
 
-import model.Kingdom;
-import model.units.Unit;
+import org.example.model.Kingdom;
+import org.example.model.units.Unit;
 
 public class Barrack extends Structure {
     private int UNIT_SPACE;

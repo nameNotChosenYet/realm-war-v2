@@ -1,8 +1,8 @@
-package view;
+package org.example.view;
 
-import controller.GameController;
-import model.grid.Grid;
-import model.structures.Structure;
+import org.example.controller.GameController;
+import org.example.model.Grid.Grid;
+import org.example.model.structures.Structure;
 import javax.swing.*;
 import java.awt.*;
 
@@ -33,8 +33,8 @@ public class StructureInfoDialog extends JDialog {
         infoPanel.add(durabilityLabel);
         infoPanel.add(levelUpCostLabel);
 
-        if (structure instanceof model.structures.Market) {
-            int goldPerTurn = ((model.structures.Market) structure).getGoldPerTurn();
+        if (structure instanceof org.example.model.structures.Market) {
+            int goldPerTurn = ((org.example.model.structures.Market) structure).getGoldPerTurn();
             JLabel goldLabel = new JLabel("Gold per Turn: " + goldPerTurn, SwingConstants.CENTER);
             infoPanel.add(goldLabel);
         }

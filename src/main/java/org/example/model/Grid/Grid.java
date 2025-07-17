@@ -1,7 +1,7 @@
-package model.grid;
+package org.example.model.Grid;
 
-import model.blocks.Block;
-import view.BlockView;
+import org.example.model.blocks.Block;
+import org.example.view.BlockView;
 
 public class Grid {
 
