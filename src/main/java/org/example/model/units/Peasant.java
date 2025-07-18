@@ -10,22 +10,12 @@ public class Peasant extends Unit {
 
     @Override
     public void attack(Unit target){
-        int hP = target.getHitPoint() - this.getAttackPower();
-        if( hP < 0) {
-            hP = 0;
-            new Kingdom().deleteUnit(target);
-        }
-        target.setHitPoint(hP);
+        super.attack(target);
     }
 
     @Override
     public void structAttack(Structure target){
-        int newDurability = target.getDurability() - this.getAttackPower();
-        if( newDurability < 0 ){
-            newDurability = 0;
-            new Kingdom().deleteStructure(target);
-        }
-        target.setDurability(newDurability);
+        super.structAttack(target);
     }
 
     @Override

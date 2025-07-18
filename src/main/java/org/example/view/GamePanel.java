@@ -9,9 +9,12 @@ import org.example.model.blocks.VoidBlock;
 import org.example.model.Grid.Grid;
 import org.example.model.structures.*;
 import org.example.model.units.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
+
+
 
 public class GamePanel extends JPanel {
 
@@ -153,37 +156,63 @@ public class GamePanel extends JPanel {
         Block fromBlock = Grid.getBlockViews()[fromRow][fromCol].getBlock();
         Block toBlock = Grid.getBlockViews()[toRow][toCol].getBlock();
         Unit unit = fromBlock.getUnit();
-        if (toBlock.hasStructure()) {
-            if (unit.getHitPoint() < toBlock.getStructure().getDurability()) {
-                toBlock.getStructure().setDurability(toBlock.getStructure().getDurability() - unit.getHitPoint());
-                Grid.getBlockViews()[toRow][toCol].updateDisplay();
-                clearSelectionHighlights();
-                repaint();
-                return;
+        boolean targetDestroyed = false;
+        if (toBlock.hasStructure() && !toBlock.getStructure().getOwner().getName().equals(gameController.getCurrentPlayerName())) {
+            Structure targetStructure = toBlock.getStructure();
+            unit.structAttack(targetStructure);
+            gameController.addLogMessage(unit.getClass().getSimpleName() + " attacked " + targetStructure.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ")");
+            Grid.getBlockViews()[toRow][toCol].updateDisplay();
+
+            if (targetStructure.getDurability() <= 0) {
+                gameController.addLogMessage(targetStructure.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ") was destroyed!");
+                gameController.removeStructureFromGame(targetStructure, toBlock);
+                targetDestroyed = true;
+            }
+        } else if (toBlock.hasUnit() && !toBlock.getUnit().getOwner().getName().equals(gameController.getCurrentPlayerName())) {
+            Unit enemyUnit = toBlock.getUnit();
+            unit.attack(enemyUnit);
+            gameController.addLogMessage(unit.getClass().getSimpleName() + " attacked " + enemyUnit.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ")");
+            Grid.getBlockViews()[toRow][toCol].updateDisplay();
+
+            if (enemyUnit.getHitPoint() <= 0) {
+                gameController.addLogMessage(enemyUnit.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ") was defeated!");
+                gameController.removeUnitFromGame(enemyUnit, toBlock);
+                targetDestroyed = true;
             }
         }
-        fromBlock.setUnit(null);
-        toBlock.setUnit(unit);
+        if (targetDestroyed || (!toBlock.hasUnit() && !toBlock.hasStructure())) {
+            fromBlock.setUnit(null);
+            toBlock.setUnit(unit);
+            takeOwnershipOfBlock(toBlock, toRow, toCol);
+            gameController.addLogMessage(unit.getClass().getSimpleName() + " moved to (" + toRow + "," + toCol + ")");
+        } else {
+
+            gameController.addLogMessage(unit.getClass().getSimpleName() + " remained at (" + fromRow + "," + fromCol + ")");
+        }
+
         Grid.getBlockViews()[fromRow][fromCol].updateDisplay();
         Grid.getBlockViews()[toRow][toCol].updateDisplay();
+        gameController.updateHUD();
+        clearSelectionHighlights();
+        repaint();
+    }
+
+    private void takeOwnershipOfBlock(Block block, int row, int col) {
+        block.setOwner(gameController.getCurrentPlayerName());
         if (gameController.getCurrentPlayer().getName().equals("Player 1")) {
-            Grid.getBlockViews()[toRow][toCol].setBorder(BorderFactory.createCompoundBorder(
+            Grid.getBlockViews()[row][col].setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.RED, 3),
                     BorderFactory.createLineBorder(new Color(92, 120, 80), 1)
             ));
-            Grid.getBlockViews()[toRow][toCol].getBlock().setOwner(gameController.getCurrentPlayerName());
-            if (Grid.getBlockViews()[toRow][toCol].getBlock() instanceof ForestBlock)
-                ((ForestBlock) Grid.getBlockViews()[toRow][toCol].getBlock()).cutForest();
         } else {
-            Grid.getBlockViews()[toRow][toCol].setBorder(BorderFactory.createCompoundBorder(
+            Grid.getBlockViews()[row][col].setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.BLUE, 3),
                     BorderFactory.createLineBorder(new Color(92, 120, 80), 1)
             ));
-            Grid.getBlockViews()[toRow][toCol].getBlock().setOwner(gameController.getCurrentPlayerName());
-            if (Grid.getBlockViews()[toRow][toCol].getBlock() instanceof ForestBlock)
-                ((ForestBlock) Grid.getBlockViews()[toRow][toCol].getBlock()).cutForest();
         }
-        gameController.addLogMessage(unit.getClass().getSimpleName() + " moved to (" + toRow + "," + toCol + ")");
+        if (block instanceof ForestBlock) {
+            ((ForestBlock) block).cutForest();
+        }
     }
 
     public void clearSelectionHighlights() {
@@ -214,7 +243,8 @@ public class GamePanel extends JPanel {
                 SwordMan newSwordMan = new SwordMan();
                 newSwordMan.setOwner(owner);
                 return newSwordMan;
-            default: return null;
+            default:
+                return null;
         }
     }
 
@@ -236,7 +266,12 @@ public class GamePanel extends JPanel {
                 Tower newTower = new Tower();
                 newTower.setOwner(owner);
                 return newTower;
-            default: return null;
+            case "townhall":
+                TownHall newTownhall = new TownHall();
+                newTownhall.setOwner(owner);
+                return newTownhall;
+            default:
+                return null;
         }
     }
 
@@ -295,14 +330,28 @@ public class GamePanel extends JPanel {
     }
 
     private void placeTownHalls() {
+//        Block block1 = Grid.getBlockViews()[0][0].getBlock();
+//        TownHall townHall1 = new TownHall();
+//        block1.setStructure(townHall1);
+//        Grid.getBlockViews()[0][0].updateDisplay();
+//        Block block2 = Grid.getBlockViews()[9][9].getBlock();
+//        TownHall townHall2 = new TownHall();
+//        block2.setStructure(townHall2);
+//        Grid.getBlockViews()[9][9].updateDisplay();
+
+        Player player1 = gameController.getPlayer1();
+        Player player2 = gameController.getPlayer2();
+        Structure townHall1 = createStructure("townhall", player1);
+        Structure townHall2 = createStructure("townhall", player2);
+
         Block block1 = Grid.getBlockViews()[0][0].getBlock();
-        TownHall townHall1 = new TownHall();
-        block1.setStructure(townHall1);
-        Grid.getBlockViews()[0][0].updateDisplay();
         Block block2 = Grid.getBlockViews()[9][9].getBlock();
-        TownHall townHall2 = new TownHall();
+        block1.setStructure(townHall1);
         block2.setStructure(townHall2);
+        Grid.getBlockViews()[0][0].updateDisplay();
         Grid.getBlockViews()[9][9].updateDisplay();
+
+
     }
 
     private boolean canTakeEnemyBlock(int enemyRow, int enemyCol, int row, int col) {

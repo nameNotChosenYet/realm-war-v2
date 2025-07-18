@@ -42,6 +42,7 @@ public class BlockView extends JButton {
 
         setOpaque(true);
         setBorderPainted(true);
+        repaint();
     }
 
     private void displayUnit(Unit unit) {
@@ -57,67 +58,11 @@ public class BlockView extends JButton {
 
     private void displayStructure(Structure structure) {
         String structureType = structure.getClass().getSimpleName().toLowerCase();
-        if (structure.getLevel() == 1) {
-            switch (structure.getDurability()) {
-                case 40:
-                    structureType += "Durability40";
-                    break;
-                case 30:
-                    structureType += "Durability30";
-                    break;
-                case 20:
-                    structureType += "Durability20";
-                    break;
-                case 10:
-                    structureType += "Durability10";
-                    break;
-                default:
-                    break;
-            }
-        }
         if (structure.getLevel() == 2) {
             structureType += "2";
-            switch (structure.getDurability()) {
-                case 50:
-                    structureType += "durability50";
-                case 40:
-                    structureType += "durability40";
-                    break;
-                case 30:
-                    structureType += "durability30";
-                    break;
-                case 20:
-                    structureType += "durability20";
-                    break;
-                case 10:
-                    structureType += "durability10";
-                    break;
-                default:
-                    break;
-            }
         }
         if (structure.getLevel() == 3) {
             structureType += "3";
-            switch (structure.getDurability()) {
-                case 60:
-                    structureType += "durability60";
-                case 50:
-                    structureType += "durability50";
-                case 40:
-                    structureType += "durability40";
-                    break;
-                case 30:
-                    structureType += "durability30";
-                    break;
-                case 20:
-                    structureType += "durability20";
-                    break;
-                case 10:
-                    structureType += "durability10";
-                    break;
-                default:
-                    break;
-            }
         }
 
 

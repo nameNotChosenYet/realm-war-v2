@@ -110,6 +110,14 @@ public class Kingdom {
         this.gold = gold;
     }
 
+    public void removeUnit(Unit unit) {
+        units.remove(unit);
+    }
+
+    public void removeStructure(Structure structure) {
+        structures.remove(structure);
+    }
+
     public void deleteUnit(Unit unit) {
         units.remove(unit);
     }

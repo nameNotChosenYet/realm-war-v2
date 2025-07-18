@@ -60,7 +60,7 @@ public class GameController {
             String unitName = unit.getClass().getSimpleName();
             String owner = unit.getOwner().getName();
             int durability = unit.getHitPoint();
-            int maxDurability = unit.getHitPoint();
+            int maxDurability = unit.getMaxHitPoint();
             int level = 1;
             boolean canUpgrade = unit.canUpgrade();
             int upgradeCost = unit.getUpgradeCost();
@@ -90,6 +90,31 @@ public class GameController {
         }
     }
 
+    public void removeUnitFromGame(Unit unitToRemove, Block blockContainingUnit) {
+        if (unitToRemove == null || blockContainingUnit == null) return;
+
+        if (unitToRemove.getOwner() != null) {
+            unitToRemove.getOwner().getKingdom().removeUnit(unitToRemove);
+        }
+        blockContainingUnit.setUnit(null);
+        Grid.getBlockViews()[blockContainingUnit.getRow()][blockContainingUnit.getCol()].updateDisplay();
+        updateHUD();
+    }
+
+    public void removeStructureFromGame(Structure structureToRemove, Block blockContainingStructure) {
+        if (structureToRemove == null || blockContainingStructure == null) return;
+
+
+        if (structureToRemove.getOwner() != null) {
+            structureToRemove.getOwner().getKingdom().removeStructure(structureToRemove);
+        }
+
+        blockContainingStructure.setStructure(null);
+
+        Grid.getBlockViews()[blockContainingStructure.getRow()][blockContainingStructure.getCol()].updateDisplay();
+        updateHUD();
+    }
+
 
     public void upgradeSelectedEntity() {
         if (selectedEntityOnMap == null || selectedEntityBlock == null) {
@@ -104,6 +129,7 @@ public class GameController {
                 Unit nextTierUnit = unit.getNextTierUnit();
                 nextTierUnit.setOwner(currentPlayer);
                 selectedEntityBlock.setUnit(nextTierUnit);
+                Grid.getBlockViews()[selectedEntityBlock.getRow()][selectedEntityBlock.getCol()].updateDisplay();
 
                 addLogMessage(unit.getClass().getSimpleName() + " upgraded to " + nextTierUnit.getClass().getSimpleName());
                 selectBlock(selectedEntityBlock);
@@ -115,6 +141,7 @@ public class GameController {
             Structure structure = (Structure) selectedEntityOnMap;
             if (structure.canLevelUp() && currentPlayer.getKingdom().getGold() >= structure.getLevelUpCost()) {
                 structure.levelUp();
+                Grid.getBlockViews()[selectedEntityBlock.getRow()][selectedEntityBlock.getCol()].updateDisplay();
 
                 addLogMessage(structure.getClass().getSimpleName() + " upgraded to Level " + structure.getLevel());
                 selectBlock(selectedEntityBlock);
@@ -216,7 +243,7 @@ public class GameController {
         switch (type.toLowerCase()) {
             case "knight": case "peasant": case "spearman": case "swordman":
                 return basePath  + type.toLowerCase() + ".png";
-            case "barrack": case "farm": case "market": case "tower":
+            case"townhall": case "barrack": case "farm": case "market": case "tower":
                 return basePath  + type.toLowerCase() + ".png";
             default:
                 return null;

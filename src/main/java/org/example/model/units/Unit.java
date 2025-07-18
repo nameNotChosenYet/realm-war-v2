@@ -13,6 +13,7 @@ public abstract class Unit {
     private int unitSpace;
     private Player Owner;
     protected boolean canMove;
+    private final int maxHitPoint;
 
 
     public Unit(int hitPoint, int movementRange, int attackPower, int attackRange, int payment, int ration, int unitSpace, boolean canMove) {
@@ -24,12 +25,23 @@ public abstract class Unit {
         this.ration = ration;
         this.unitSpace = unitSpace;
         this.canMove = canMove;
+        this.maxHitPoint = hitPoint;
     }
 
 
-    public abstract void attack(Unit target);
+    public void attack(Unit target){
+        int newHP = target.getHitPoint() - this.getAttackPower();
+        target.setHitPoint(Math.max(0, newHP));
+    }
 
-    public abstract void structAttack(Structure target);
+    public void structAttack(Structure target){
+        int newDurability = target.getDurability() - this.getAttackPower();
+        target.setDurability(Math.max(0, newDurability));
+    }
+
+    public int getMaxHitPoint() {
+        return maxHitPoint;
+    }
 
     public abstract boolean getCanMove();
 
