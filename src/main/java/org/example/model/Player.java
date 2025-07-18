@@ -5,12 +5,14 @@ public class Player {
     private Kingdom kingdom;
     private boolean isTurn;
     private boolean isGameOver;
+    private int score;
 
     public Player(Kingdom kingdom, String name) {
         this.kingdom = kingdom;
         this.name = name;
         this.kingdom.setPlayerName(name);
         this.isTurn = false;
+        this.score = 0;
     }
 
     public void startTurn(int turnCount) {
@@ -42,5 +44,14 @@ public class Player {
     public String getName() {
         return name;
     }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void addScore(int amount) {
+        this.score += amount;
+    }
+
 
 }

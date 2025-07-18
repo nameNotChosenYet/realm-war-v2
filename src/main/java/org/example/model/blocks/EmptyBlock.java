@@ -18,6 +18,6 @@ public class EmptyBlock extends Block {
 
     @Override
     public int getFoodGeneration() {
-        return owned ? 10 : 0;
+        return 0;
     }
 }

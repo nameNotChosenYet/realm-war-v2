@@ -9,6 +9,8 @@ import org.example.model.blocks.VoidBlock;
 import org.example.model.Grid.Grid;
 import org.example.model.structures.*;
 import org.example.model.units.*;
+import org.example.utils.LogManager;
+import org.example.model.Kingdom;
 
 import javax.swing.*;
 import java.awt.*;
@@ -157,30 +159,52 @@ public class GamePanel extends JPanel {
         Block toBlock = Grid.getBlockViews()[toRow][toCol].getBlock();
         Unit unit = fromBlock.getUnit();
         boolean targetDestroyed = false;
+        if (isUnderTowerProtection(toRow, toCol, gameController.getCurrentPlayer())) {
+            gameController.addLogMessage("Target is protected by a Tower. Destroy the tower first!");
+            Grid.getBlockViews()[fromRow][fromCol].updateDisplay();
+            Grid.getBlockViews()[toRow][toCol].updateDisplay();
+            gameController.updateHUD();
+            clearSelectionHighlights();
+            repaint();
+            return;
+        }
         if (toBlock.hasStructure() && !toBlock.getStructure().getOwner().getName().equals(gameController.getCurrentPlayerName())) {
             Structure targetStructure = toBlock.getStructure();
             unit.structAttack(targetStructure);
+            org.example.utils.LogManager.logAttack(gameController.getCurrentPlayerName());
             gameController.addLogMessage(unit.getClass().getSimpleName() + " attacked " + targetStructure.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ")");
             Grid.getBlockViews()[toRow][toCol].updateDisplay();
 
             if (targetStructure.getDurability() <= 0) {
                 gameController.addLogMessage(targetStructure.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ") was destroyed!");
                 gameController.removeStructureFromGame(targetStructure, toBlock);
+                gameController.getCurrentPlayer().addScore(3);
                 targetDestroyed = true;
+                if (targetStructure instanceof TownHall) {
+                    gameController.endGame(gameController.getCurrentPlayer(), targetStructure.getOwner());
+                }
             }
         } else if (toBlock.hasUnit() && !toBlock.getUnit().getOwner().getName().equals(gameController.getCurrentPlayerName())) {
             Unit enemyUnit = toBlock.getUnit();
             unit.attack(enemyUnit);
+            org.example.utils.LogManager.logAttack(gameController.getCurrentPlayerName());
             gameController.addLogMessage(unit.getClass().getSimpleName() + " attacked " + enemyUnit.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ")");
             Grid.getBlockViews()[toRow][toCol].updateDisplay();
 
             if (enemyUnit.getHitPoint() <= 0) {
                 gameController.addLogMessage(enemyUnit.getClass().getSimpleName() + " at (" + toRow + "," + toCol + ") was defeated!");
                 gameController.removeUnitFromGame(enemyUnit, toBlock);
+                gameController.getCurrentPlayer().addScore(1);
                 targetDestroyed = true;
             }
         }
         if (targetDestroyed || (!toBlock.hasUnit() && !toBlock.hasStructure())) {
+            boolean fromForest = fromBlock instanceof ForestBlock && ((ForestBlock) fromBlock).hasForest();
+            boolean toForest = toBlock instanceof ForestBlock && ((ForestBlock) toBlock).hasForest();
+            if (fromForest && !toForest)
+                unit.leaveForest();
+            else if (!fromForest && toForest)
+                unit.enterForest();
             fromBlock.setUnit(null);
             toBlock.setUnit(unit);
             takeOwnershipOfBlock(toBlock, toRow, toCol);
@@ -210,10 +234,29 @@ public class GamePanel extends JPanel {
                     BorderFactory.createLineBorder(new Color(92, 120, 80), 1)
             ));
         }
-        if (block instanceof ForestBlock) {
-            ((ForestBlock) block).cutForest();
-        }
+
     }
+
+    private boolean isUnderTowerProtection(int row, int col, Player attacker) {
+        for (int r = 0; r < Grid.getRow(); r++) {
+            for (int c = 0; c < Grid.getCol(); c++) {
+                if (r == row && c == col) continue;
+                Block b = Grid.getBlockViews()[r][c].getBlock();
+                if (b.hasStructure() && b.getStructure() instanceof Tower) {
+                    Tower tower = (Tower) b.getStructure();
+                    if (!tower.getOwner().getName().equals(attacker.getName())) {
+                        int dr = Math.abs(r - row);
+                        int dc = Math.abs(c - col);
+                        if (dr <= tower.getDefendRange() && dc <= tower.getDefendRange()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 
     public void clearSelectionHighlights() {
         for (int row = 0; row < Grid.getRow(); row++) {
@@ -305,6 +348,9 @@ public class GamePanel extends JPanel {
         if (gameController.getCurrentPlayer().getKingdom().canCreateUnit(unit)) {
             Block block = Grid.getBlockViews()[row][col].getBlock();
             block.setUnit(unit);
+            if (block instanceof ForestBlock && ((ForestBlock) block).hasForest()) {
+                unit.enterForest();
+            }
             Grid.getBlockViews()[row][col].updateDisplay();
             gameController.addLogMessage(currentPlayer.getName() + " created " + unitType + " at (" + row + "," + col + ")");
             gameController.getCurrentPlayer().getKingdom().createUnit(unit);
@@ -317,27 +363,27 @@ public class GamePanel extends JPanel {
     private void placeStructure(int row, int col, String structureType) {
         Player currentPlayer = gameController.getCurrentPlayer();
         Structure structure = createStructure(structureType, currentPlayer);
-        if (gameController.getCurrentPlayer().getKingdom().canBuildStructure(structure)) {
+        Kingdom kingdom = gameController.getCurrentPlayer().getKingdom();
+        if (kingdom.canBuildStructure(structure)) {
             Block block = Grid.getBlockViews()[row][col].getBlock();
+            if (block instanceof ForestBlock && ((ForestBlock) block).hasForest()) {
+                ((ForestBlock) block).cutForest();
+            }
             block.setStructure(structure);
             Grid.getBlockViews()[row][col].updateDisplay();
             gameController.addLogMessage(currentPlayer.getName() + " built " + structureType + " at (" + row + "," + col + ")");
-            gameController.getCurrentPlayer().getKingdom().buildStructure(structure);
+            kingdom.buildStructure(structure);
             gameController.getHudPanel().updateStats();
             gameController.clearSelectedStructureType();
-        } else
-            gameController.addLogMessage("Not enough gold to build " + structureType);
+        } else {
+            if (kingdom.isStructureLimitReached(structure))
+                gameController.addLogMessage("Maximum number of " + structureType + " reached");
+            else
+                gameController.addLogMessage("Not enough gold to build " + structureType);
+        }
     }
 
     private void placeTownHalls() {
-//        Block block1 = Grid.getBlockViews()[0][0].getBlock();
-//        TownHall townHall1 = new TownHall();
-//        block1.setStructure(townHall1);
-//        Grid.getBlockViews()[0][0].updateDisplay();
-//        Block block2 = Grid.getBlockViews()[9][9].getBlock();
-//        TownHall townHall2 = new TownHall();
-//        block2.setStructure(townHall2);
-//        Grid.getBlockViews()[9][9].updateDisplay();
 
         Player player1 = gameController.getPlayer1();
         Player player2 = gameController.getPlayer2();

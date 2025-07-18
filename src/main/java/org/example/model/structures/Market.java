@@ -6,8 +6,8 @@ public class Market extends Structure {
     private int goldPerTurn;
 
     public Market() {
-        super(50, 5, 1, 3, 5, 5);
-        this.goldPerTurn = 5;
+        super(50, 5, 1, 3, 5, 10);
+        this.goldPerTurn = 8;
 
     }
 

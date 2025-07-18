@@ -7,8 +7,8 @@ public class TownHall extends Structure {
 
     public TownHall() {
         super(50, 0, 1, 1, 0, 0);
-        this.goldPerTurn = 5;
-        this.foodPerTurn = 5;
+        this.goldPerTurn = 10;
+        this.foodPerTurn = 10;
         this.unitSpace = 5;
     }
 

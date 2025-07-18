@@ -6,7 +6,7 @@ import org.example.model.structures.Structure;
 public class Knight extends Unit {
 
     public Knight(){
-        super(40,4, 5, 5, 5, 6, 1, true);
+        super(40,4, 5, 5, 20, 5, 1, true);;
     }
 
     @Override

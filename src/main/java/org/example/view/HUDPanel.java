@@ -19,15 +19,15 @@ public class HUDPanel extends JPanel {
     private static final Map<String, Integer> STRUCTURE_COSTS = new HashMap<>();
 
     static {
-        UNIT_COSTS.put("Knight", 5);
-        UNIT_COSTS.put("Peasant", 2);
-        UNIT_COSTS.put("SpearMan", 3);
-        UNIT_COSTS.put("SwordMan", 4);
+        UNIT_COSTS.put("Knight", 20);
+        UNIT_COSTS.put("Peasant", 5);
+        UNIT_COSTS.put("SpearMan", 10);
+        UNIT_COSTS.put("SwordMan", 15);
 
         STRUCTURE_COSTS.put("Barrack", 20);
-        STRUCTURE_COSTS.put("Farm", 5);
-        STRUCTURE_COSTS.put("Market", 5);
-        STRUCTURE_COSTS.put("Tower", 5);
+        STRUCTURE_COSTS.put("Farm", 10);
+        STRUCTURE_COSTS.put("Market", 10);
+        STRUCTURE_COSTS.put("Tower", 10);
     }
 
     public HUDPanel(GameController gameController) {

@@ -24,6 +24,7 @@ public class GameFrame extends JFrame {
     private JProgressBar entityHealthBar;
     private JPanel centerInfoPanel;
     private JButton upgradeButton;
+    private JButton createUnitButton;
 
     public GameFrame() {
         this.gameController = new GameController();
@@ -106,13 +107,22 @@ public class GameFrame extends JFrame {
         upgradeButton = createThemedButton("Upgrade");
         upgradeButton.addActionListener(e -> gameController.upgradeSelectedEntity());
 
+        createUnitButton = createThemedButton("Train Unit");
+        createUnitButton.addActionListener(e -> gameController.trainUnitFromSelectedBarrack());
+        createUnitButton.setVisible(false);
+
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
         topPanel.add(entityHealthBar, BorderLayout.NORTH);
         topPanel.add(statsGrid, BorderLayout.CENTER);
 
+        JPanel actionPanel = new JPanel();
+        actionPanel.setOpaque(false);
+        actionPanel.add(upgradeButton);
+        actionPanel.add(createUnitButton);
+
         centerInfoPanel.add(topPanel, BorderLayout.NORTH);
-        centerInfoPanel.add(upgradeButton, BorderLayout.SOUTH);
+        centerInfoPanel.add(actionPanel, BorderLayout.SOUTH);
         centerInfoPanel.setVisible(false);
 
         JPanel rightPanel = new JPanel();
@@ -177,7 +187,7 @@ public class GameFrame extends JFrame {
         buildImageLabel.setText("");
     }
 
-    public void updateEntityInfo(String name, String iconPath, String owner, int durability, int maxDurability, int level, boolean canUpgrade, int upgradeCost) {
+    public void updateEntityInfo(String name, String iconPath, String owner, int durability, int maxDurability, int level, boolean canUpgrade, int upgradeCost, boolean canTrain) {
         centerInfoPanel.setVisible(true);
         updateBuildSelectionInfo(name, iconPath);
         entityOwnerLabel.setText("Owner: " + owner);
@@ -185,6 +195,8 @@ public class GameFrame extends JFrame {
         entityHealthBar.setMaximum(maxDurability);
         entityHealthBar.setValue(durability);
         entityHealthBar.setString(durability + " / " + maxDurability + " HP");
+
+        createUnitButton.setVisible(canTrain);
 
         if (canUpgrade) {
             upgradeButton.setEnabled(true);
@@ -198,6 +210,7 @@ public class GameFrame extends JFrame {
     public void clearEntityInfo() {
         centerInfoPanel.setVisible(false);
         clearBuildSelectionInfo();
+        createUnitButton.setVisible(false);
     }
 
     public void onTurnEnded() { resetTurnTimer(); }

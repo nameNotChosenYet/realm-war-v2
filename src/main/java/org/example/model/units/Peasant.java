@@ -5,7 +5,7 @@ import org.example.model.structures.Structure;
 
 public class Peasant extends Unit {
     public Peasant() {
-        super(10 , 4, 2, 2, 2, 3, 1, true);
+        super(10 , 4, 2, 2, 5, 2, 1, true);;
     }
 
     @Override

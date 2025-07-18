@@ -9,7 +9,14 @@ import org.example.view.HUDPanel;
 import org.example.view.StructureInfoDialog;
 import org.example.model.structures.Structure;
 import org.example.model.units.Unit;
-
+import org.example.model.structures.Barrack;
+import org.example.model.blocks.VoidBlock;
+import org.example.model.units.SpearMan;
+import org.example.model.units.SwordMan;
+import org.example.model.units.Knight;
+import org.example.view.GameResultDialog;
+import org.example.database.DatabaseManager;
+import org.example.utils.LogManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +37,7 @@ public class GameController {
     private GameFrame gameFrame;
     private TurnManager turnManager;
 
+
     public GameController() {
         initializeGame();
     }
@@ -45,6 +53,7 @@ public class GameController {
 
         turnManager = new TurnManager(this);
         turnManager.startTurnTimer();
+        generateBarrackUnits(currentPlayer);
     }
 
     public void selectBlock(Block block) {
@@ -66,7 +75,7 @@ public class GameController {
             int upgradeCost = unit.getUpgradeCost();
             String iconPath = getIconPathFor(unitName);
 
-            gameFrame.updateEntityInfo(unitName, iconPath, owner, durability, maxDurability, level, canUpgrade, upgradeCost);
+            gameFrame.updateEntityInfo(unitName, iconPath, owner, durability, maxDurability, level, canUpgrade, upgradeCost, false);
 
         } else if (block.hasStructure()) {
             Structure structure = block.getStructure();
@@ -81,7 +90,12 @@ public class GameController {
             int upgradeCost = structure.getLevelUpCost();
             String iconPath = getIconPathFor(structureName);
 
-            gameFrame.updateEntityInfo(structureName, iconPath, owner, durability, maxDurability, level, canUpgrade, upgradeCost);
+            boolean canTrain = false;
+            if (structure instanceof Barrack) {
+                Barrack b = (Barrack) structure;
+                canTrain = currentPlayer.equals(b.getOwner()) && b.canTrain();
+            }
+            gameFrame.updateEntityInfo(structureName, iconPath, owner, durability, maxDurability, level, canUpgrade, upgradeCost, canTrain);
 
         } else {
             this.selectedEntityOnMap = null;
@@ -163,6 +177,7 @@ public class GameController {
         else currentPlayer = player1;
 
         currentPlayer.startTurn(turnCount);
+        resetBarrackTraining(currentPlayer);
 
         for (int row = 0; row < Grid.getRow(); row++) {
             for (int col = 0; col < Grid.getCol(); col++) {
@@ -197,6 +212,148 @@ public class GameController {
             hudPanel.updateStats();
         }
     }
+
+    private void generateBarrackUnits(Player player) {
+        Kingdom kingdom = player.getKingdom();
+        for (Structure structure : kingdom.getStructures()) {
+            if (structure instanceof Barrack) {
+                Barrack barrack = (Barrack) structure;
+                if (!barrack.canTrain()) continue;
+                int[] loc = findStructureLocation(barrack);
+                if (loc == null) continue;
+
+                Unit unit;
+                switch (barrack.getLevel()) {
+                    case 1:
+                        unit = new SpearMan();
+                        break;
+                    case 2:
+                        unit = new SwordMan();
+                        break;
+                    default:
+                        unit = new Knight();
+                        break;
+                }
+
+                unit.setOwner(player);
+
+                int[][] dirs = {{0,1},{1,0},{0,-1},{-1,0},{1,1},{1,-1},{-1,1},{-1,-1}};
+                boolean placed = false;
+                for (int[] d : dirs) {
+                    int r = loc[0] + d[0];
+                    int c = loc[1] + d[1];
+                    if (r >= 0 && r < Grid.getRow() && c >= 0 && c < Grid.getCol()) {
+                        Block b = Grid.getBlockViews()[r][c].getBlock();
+                        if (!(b instanceof VoidBlock) && b.isOwned() &&
+                                player.getName().equals(b.getOwner()) &&
+                                !b.hasUnit() && !b.hasStructure()) {
+                            b.setUnit(unit);
+                            kingdom.addUnit(unit);
+                            Grid.getBlockViews()[r][c].updateDisplay();
+                            addLogMessage(player.getName() + " received a free " +
+                                    unit.getClass().getSimpleName() + " from Barrack at (" +
+                                    loc[0] + "," + loc[1] + ")");
+                            placed = true;
+                            barrack.markTrained();
+                            break;
+                        }
+                    }
+                }
+                if (!placed) {
+                    addLogMessage("No space near Barrack at (" + loc[0] + "," + loc[1] + ") to place free unit");
+                }
+            }
+        }
+        updateHUD();
+    }
+
+    private int[] findStructureLocation(Structure structure) {
+        for (int r = 0; r < Grid.getRow(); r++) {
+            for (int c = 0; c < Grid.getCol(); c++) {
+                Block b = Grid.getBlockViews()[r][c].getBlock();
+                if (b.getStructure() == structure) {
+                    return new int[]{r, c};
+                }
+            }
+        }
+        return null;
+    }
+
+    public void trainUnitFromSelectedBarrack() {
+        if (!(selectedEntityOnMap instanceof Barrack) || selectedEntityBlock == null) {
+            addLogMessage("Select a Barrack first.");
+            return;
+        }
+
+        Barrack barrack = (Barrack) selectedEntityOnMap;
+        if (!currentPlayer.equals(barrack.getOwner())) {
+            addLogMessage("Cannot train units from an enemy Barrack.");
+            return;
+        }
+        if (!barrack.canTrain()) {
+            addLogMessage("This Barrack has already trained a unit this turn.");
+            return;
+        }
+
+        Unit unit;
+        switch (barrack.getLevel()) {
+            case 1:
+                unit = new SpearMan();
+                break;
+            case 2:
+                unit = new SwordMan();
+                break;
+            default:
+                unit = new Knight();
+                break;
+        }
+
+        Kingdom kingdom = currentPlayer.getKingdom();
+        if (!kingdom.canCreateUnit(unit)) {
+            addLogMessage("Not enough resources to train " + unit.getClass().getSimpleName());
+            return;
+        }
+
+        int row = selectedEntityBlock.getRow();
+        int col = selectedEntityBlock.getCol();
+        int[][] dirs = {{0,1},{1,0},{0,-1},{-1,0},{1,1},{1,-1},{-1,1},{-1,-1}};
+        for (int[] d : dirs) {
+            int r = row + d[0];
+            int c = col + d[1];
+            if (r >= 0 && r < Grid.getRow() && c >= 0 && c < Grid.getCol()) {
+                Block b = Grid.getBlockViews()[r][c].getBlock();
+                if (!(b instanceof VoidBlock) && b.isOwned() && currentPlayer.getName().equals(b.getOwner()) &&
+                        !b.hasUnit() && !b.hasStructure()) {
+                    unit.setOwner(currentPlayer);
+                    b.setUnit(unit);
+                    kingdom.createUnit(unit);
+                    Grid.getBlockViews()[r][c].updateDisplay();
+                    addLogMessage(currentPlayer.getName() + " trained a " + unit.getClass().getSimpleName() + " at (" + r + "," + c + ")");
+                    barrack.markTrained();
+                    updateHUD();
+                    selectBlock(selectedEntityBlock);
+                    return;
+                }
+            }
+        }
+
+        addLogMessage("No space near Barrack to train unit.");
+    }
+
+    public boolean canTrainFromSelectedBarrack() {
+        if (!(selectedEntityOnMap instanceof Barrack)) return false;
+        Barrack b = (Barrack) selectedEntityOnMap;
+        return currentPlayer.equals(b.getOwner()) && b.canTrain();
+    }
+
+    private void resetBarrackTraining(Player player) {
+        for (Structure s : player.getKingdom().getStructures()) {
+            if (s instanceof Barrack) {
+                ((Barrack) s).resetTrainingFlag();
+            }
+        }
+    }
+
 
     public void setGameFrame(GameFrame gameFrame) {
         this.gameFrame = gameFrame;
@@ -254,6 +411,18 @@ public class GameController {
         if (hudPanel != null) {
             hudPanel.addLogMessage(message);
         }
+    }
+
+    public void endGame(Player winner, Player loser) {
+        if (turnManager != null) {
+            turnManager.stopTimers();
+        }
+        LogManager.writeFinalScores(player1, player2);
+        DatabaseManager.saveGameResult(winner.getName(), loser.getName(), winner.getScore(), loser.getScore());
+        if (hudPanel != null) {
+            hudPanel.addLogMessage("Game Over! " + winner.getName() + " wins.");
+        }
+        new GameResultDialog(gameFrame, winner.getName(), loser.getName(), winner.getScore(), loser.getScore()).setVisible(true);
     }
 
     public Player getCurrentPlayer() {

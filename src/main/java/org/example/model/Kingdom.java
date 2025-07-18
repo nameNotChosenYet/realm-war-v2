@@ -2,10 +2,7 @@ package org.example.model;
 
 import org.example.model.blocks.Block;
 import org.example.model.Grid.Grid;
-import org.example.model.structures.Farm;
-import org.example.model.structures.Market;
-import org.example.model.structures.Structure;
-import org.example.model.structures.TownHall;
+import org.example.model.structures.*;
 import org.example.model.units.Unit;
 
 import java.util.ArrayList;
@@ -18,6 +15,12 @@ public class Kingdom {
     private ArrayList<Unit> units;
     private ArrayList<Structure> structures;
     private ArrayList<Block> blocks;
+
+    private static final int MAX_BARRACKS = 3;
+    private static final int MAX_FARMS = 3;
+    private static final int MAX_MARKETS = 3;
+    private static final int MAX_TOWERS = 3;
+    private static final int MAX_TOWN_HALLS = 1;
 
     public Kingdom() {
         this.gold = 100;
@@ -43,6 +46,17 @@ public class Kingdom {
                 market.produce_gold(this);
             }
         }
+
+        for (int r = 0; r < Grid.getRow(); r++) {
+            for (int c = 0; c < Grid.getCol(); c++) {
+                Block b = Grid.getBlockViews()[r][c].getBlock();
+                if (b.isOwned() && b.getOwner().equals(playerName)) {
+                    this.gold += b.getGoldGeneration();
+                    this.food += b.getFoodGeneration();
+                }
+            }
+        }
+
         for (Unit u : units) {
             this.food -= u.getRation();
         }
@@ -78,12 +92,32 @@ public class Kingdom {
 
 
     public boolean canBuildStructure(Structure structure) {
-        return this.gold >= structure.getBuildingCost();
+        return this.gold >= structure.getBuildingCost() && !isStructureLimitReached(structure);
     }
 
     public void buildStructure(Structure structure) {
+        if (isStructureLimitReached(structure)) {
+            return;
+        }
         this.gold -= structure.getBuildingCost();
         this.structures.add(structure);
+    }
+
+    private long countStructures(Class<? extends Structure> type) {
+        return structures.stream().filter(s -> s.getClass().equals(type)).count();
+    }
+
+    private int getMaxStructureCount(Class<? extends Structure> type) {
+        if (type.equals(Barrack.class)) return MAX_BARRACKS;
+        if (type.equals(Farm.class)) return MAX_FARMS;
+        if (type.equals(Market.class)) return MAX_MARKETS;
+        if (type.equals(Tower.class)) return MAX_TOWERS;
+        if (type.equals(TownHall.class)) return MAX_TOWN_HALLS;
+        return Integer.MAX_VALUE;
+    }
+
+    public boolean isStructureLimitReached(Structure structure) {
+        return countStructures(structure.getClass()) >= getMaxStructureCount(structure.getClass());
     }
 
     public void addGold(int add) {

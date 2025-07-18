@@ -6,8 +6,8 @@ public class Farm extends Structure {
     private int foodPerTurn;
 
     public Farm() {
-        super(50, 5, 1, 3, 5, 5);
-        this.foodPerTurn = 5;
+        super(50, 5, 1, 3, 5, 10);
+        this.foodPerTurn = 8;
 
     }
 

@@ -7,6 +7,8 @@ public abstract class Unit {
     private int hitPoint;
     private int movementRange;
     private int attackPower;
+    private final int baseAttackPower;
+    private boolean inForest = false;
     private int attackRange;
     private int payment;
     private int ration;
@@ -20,6 +22,7 @@ public abstract class Unit {
         this.hitPoint = hitPoint;
         this.movementRange = movementRange;
         this.attackPower = attackPower;
+        this.baseAttackPower = attackPower;
         this.attackRange = attackRange;
         this.payment = payment;
         this.ration = ration;
@@ -37,6 +40,22 @@ public abstract class Unit {
     public void structAttack(Structure target){
         int newDurability = target.getDurability() - this.getAttackPower();
         target.setDurability(Math.max(0, newDurability));
+    }
+
+    public void enterForest() {
+        if (!inForest) {
+            attackPower += 2;
+            hitPoint += 5;
+            inForest = true;
+        }
+    }
+
+    public void leaveForest() {
+        if (inForest) {
+            attackPower = baseAttackPower;
+            hitPoint = Math.max(hitPoint - 5, 0);
+            inForest = false;
+        }
     }
 
     public int getMaxHitPoint() {

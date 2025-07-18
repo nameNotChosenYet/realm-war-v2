@@ -5,7 +5,7 @@ import org.example.model.structures.Structure;
 
 public class SpearMan extends Unit {
     public SpearMan(){
-        super(20,4, 3, 3, 3, 4, 1, true);
+        super(20,4, 3, 3, 10, 3, 1, true);
     }
 
     @Override

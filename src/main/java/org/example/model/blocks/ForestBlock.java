@@ -28,6 +28,6 @@ public class ForestBlock extends Block {
 
     @Override
     public int getFoodGeneration() {
-        return (owned && forestCut) ? 20 : 0;
+        return (owned && !forestCut) ? 20 : 0;
     }
 }
