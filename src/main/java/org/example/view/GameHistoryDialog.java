@@ -1,6 +1,7 @@
 package org.example.view;
 
 import org.example.database.DatabaseManager;
+import org.example.view.Theme;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,6 +17,7 @@ public class GameHistoryDialog extends JDialog {
         setSize(600, 400);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout());
+        getContentPane().setBackground(Theme.PANEL_BACKGROUND);
 
 
         String[] columns = {"Game #", "Winner", "Loser", "Winner Score", "Loser Score"};
@@ -54,24 +56,34 @@ public class GameHistoryDialog extends JDialog {
         JTable table = new JTable(model);
         table.setAutoCreateRowSorter(true);
         table.setRowHeight(22);
+        table.setFont(Theme.getFont(14f));
 
 
-        table.setBackground(new Color(186, 186, 186));
-        table.setForeground(Color.BLACK);
-        table.setGridColor(Color.GRAY);
+        table.setBackground(Theme.BACKGROUND);
+        table.setForeground(Theme.TEXT_COLOR);
+        table.setGridColor(Theme.BORDER_COLOR);
 
 
         JTableHeader header = table.getTableHeader();
-        header.setBackground(new Color(124, 124, 124));
-        header.setForeground(Color.BLACK);
-        header.setFont(new Font("Arial", Font.BOLD, 14));
+        header.setBackground(Theme.ACCENT_COLOR);
+        header.setForeground(Theme.BACKGROUND);
+        header.setFont(Theme.getFont(16f));
 
         JScrollPane scrollPane = new JScrollPane(table);
         add(scrollPane, BorderLayout.CENTER);
 
         JButton closeBtn = new JButton("Close");
+        closeBtn.setFont(Theme.getFont(14f));
+        closeBtn.setBackground(Theme.PANEL_BACKGROUND);
+        closeBtn.setForeground(Theme.TEXT_COLOR);
+        closeBtn.setFocusPainted(false);
+        closeBtn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Theme.ACCENT_COLOR, 1),
+                BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
         closeBtn.addActionListener(e -> dispose());
         JPanel bottom = new JPanel();
+        bottom.setBackground(Theme.PANEL_BACKGROUND);
         bottom.add(closeBtn);
         add(bottom, BorderLayout.SOUTH);
     }

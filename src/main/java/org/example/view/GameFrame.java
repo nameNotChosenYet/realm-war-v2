@@ -44,6 +44,7 @@ public class GameFrame extends JFrame {
         setSize(1200, 800);
         setLocationRelativeTo(null);
         setResizable(true);
+        setIconImage(new ImageIcon(getClass().getResource("/Images/castle.png")).getImage());
     }
 
     private void createComponents() {
